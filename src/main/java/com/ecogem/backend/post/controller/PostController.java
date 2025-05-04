@@ -1,14 +1,15 @@
 package com.ecogem.backend.post.controller;
 
+import com.ecogem.backend.post.dto.PostCreateRequestDto;
+import com.ecogem.backend.post.dto.PostCreateResponseDto;
 import com.ecogem.backend.post.dto.PostResponseDto;
 import com.ecogem.backend.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +53,28 @@ public class PostController {
                 "message", "POST_LIST",
                 "data",    data
         ));
+    }
+
+    /**
+     * 게시글 작성
+     */
+    @PostMapping
+    public ResponseEntity<?> createPost(
+            @RequestBody @Validated PostCreateRequestDto request
+    ) {
+        PostCreateResponseDto data = postService.createPost(request);
+
+        // java.net.URI 로 Location 변수 선언
+        URI location = URI.create("/api/posts/" + data.getPostId());
+
+        return ResponseEntity
+                .created(location)  // HTTP 201 + Location 헤더 자동 세팅
+                .body(Map.of(
+                        "success", true,
+                        "code",    201,
+                        "message", "POST_CREATE_SUCCESS",
+                        "data",    data
+                ));
     }
 
 }

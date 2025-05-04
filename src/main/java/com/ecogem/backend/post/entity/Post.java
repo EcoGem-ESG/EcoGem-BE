@@ -2,10 +2,7 @@ package com.ecogem.backend.post.entity;
 
 import com.ecogem.backend.domain.entity.Store;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.w3c.dom.Text;
 
 import java.time.LocalDateTime;
@@ -15,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@Getter
 public class Post {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
