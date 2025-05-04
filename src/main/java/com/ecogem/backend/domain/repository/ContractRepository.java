@@ -11,5 +11,11 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
 
     // 회사(userId) 가 맺은 계약 목록 조회
     List<Contract> findByCompany_UserId(Long companyUserId);
+
+    // 검색어가 포함된 계약된 가게 조회
+    List<Contract> findByCompany_UserIdAndStore_NameContainingIgnoreCase(
+            Long companyUserId,
+            String keyword
+    );
 }
 

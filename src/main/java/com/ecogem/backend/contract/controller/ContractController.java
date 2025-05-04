@@ -23,10 +23,11 @@ public class ContractController {
     @GetMapping("/stores")
     public ResponseEntity<Map<String, Object>> getContractedStores(
         @RequestParam("user_id") Long userId,
-        @RequestParam("role") String roleStr
+        @RequestParam("role") String roleStr,
+        @RequestParam(value = "search", required = false) String search
     ) {
         Role role = Role.valueOf(roleStr.toUpperCase());
-        List<ContractedStoreResponseDto> data = service.getContractedStore(userId, role);
+        List<ContractedStoreResponseDto> data = service.getContractedStore(userId, role, search);
 
         Map<String, Object> resp = new HashMap<>();
         resp.put("success", true);

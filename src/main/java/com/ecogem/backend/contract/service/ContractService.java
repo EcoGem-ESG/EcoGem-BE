@@ -23,12 +23,18 @@ public class ContractService {
     private final StoreRepository storeRepo;
     private final CompanyRepository companyRepo;
 
-    public List<ContractedStoreResponseDto> getContractedStore(Long userId, Role role) {
+    public List<ContractedStoreResponseDto> getContractedStore(Long userId, Role role, String search) {
         if(role != Role.COMPANY_WORKER) {
             throw new IllegalArgumentException("Only COMPANY_WORKER can view contracted stores");
         }
 
-        List<Contract> contracts = contractRepo.findByCompany_UserId(userId);
+        List<Contract> contracts;
+        if (search != null && !search.isBlank()) {
+            contracts = contractRepo
+                    .findByCompany_UserIdAndStore_NameContainingIgnoreCase(userId, search);
+        } else {
+            contracts = contractRepo.findByCompany_UserId(userId);
+        }
 
         return contracts.stream()
                 .map(c -> ContractedStoreResponseDto.builder()
