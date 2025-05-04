@@ -1,14 +1,13 @@
 package com.ecogem.backend.contract.controller;
 
-import com.ecogem.backend.contract.dto.ContractedStoreDto;
+import com.ecogem.backend.contract.dto.AddContractedStoreRequestDto;
+import com.ecogem.backend.contract.dto.ContractedStoreResponseDto;
 import com.ecogem.backend.contract.service.ContractService;
 import com.ecogem.backend.domain.entity.Role;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +26,7 @@ public class ContractController {
         @RequestParam("role") String roleStr
     ) {
         Role role = Role.valueOf(roleStr.toUpperCase());
-        List<ContractedStoreDto> data = service.getContractedStore(userId, role);
+        List<ContractedStoreResponseDto> data = service.getContractedStore(userId, role);
 
         Map<String, Object> resp = new HashMap<>();
         resp.put("success", true);
@@ -36,5 +35,27 @@ public class ContractController {
         resp.put("data", data);
 
         return ResponseEntity.ok(resp);
+    }
+
+    /**
+     * 리스트에 가게 추가
+     */
+    @PostMapping("/stores")
+    public ResponseEntity<Map<String, Object>> addStore(
+            @RequestParam("user_id") Long userId,
+            @RequestParam("role") String roleStr,
+            @RequestBody AddContractedStoreRequestDto dto
+    ) {
+        Role role = Role.valueOf(roleStr.toUpperCase());
+        service.addContractedStore(userId, role, dto);
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("success", true);
+        resp.put("code", 201);
+        resp.put("message", "CONTRACTED_STORE_REGISTERED");
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(resp);
     }
 }

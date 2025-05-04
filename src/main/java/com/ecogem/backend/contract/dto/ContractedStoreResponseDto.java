@@ -9,7 +9,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class ContractedStoreDto {
+public class ContractedStoreResponseDto {
 
     @JsonProperty("store_id")
     private final Long storeId;
