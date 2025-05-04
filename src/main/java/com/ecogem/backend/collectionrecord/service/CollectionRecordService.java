@@ -2,6 +2,7 @@ package com.ecogem.backend.collectionrecord.service;
 
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordRequestDto;
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordResponseDto;
+import com.ecogem.backend.collectionrecord.dto.CollectionRecordUpdateDto;
 import com.ecogem.backend.collectionrecord.entity.CollectionRecord;
 import com.ecogem.backend.collectionrecord.repository.CollectionRecordRepository;
 import com.ecogem.backend.domain.entity.Company;
@@ -98,4 +99,41 @@ public class CollectionRecordService {
         // 4) 저장
         recordRepo.save(record);
     }
+
+    /**
+     * 3) 수거기록 수정
+     */
+    @Transactional
+    public void updateRecord(
+            Long userId,
+            Role role,
+            Long recordId,
+            CollectionRecordUpdateDto dto
+    ) {
+        // 1) 오직 COMPANY_WORKER만 허용
+        if (role != Role.COMPANY_WORKER) {
+            throw new IllegalArgumentException("Only COMPANY_WORKER can update records");
+        }
+
+        // 2) 기존 레코드 조회
+        CollectionRecord record = recordRepo.findById(recordId)
+                .orElseThrow(() -> new IllegalArgumentException("No record with id=" + recordId));
+
+        // 3) 해당 업체(userId)가 작성한 레코드인지 확인
+        if (!record.getCompany().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("Company worker can only update their own records");
+        }
+
+        // 4) 도메인 메서드로 필드 업데이트 (store는 건드리지 않음)
+        record.update(
+                dto.getCollectedAt(),
+                dto.getCollectedBy(),
+                dto.getVolumeLiter(),
+                dto.getPricePerLiter(),
+                dto.getTotalPrice()
+        );
+
+        // 5) 트랜잭션 커밋 시 JPA가 변경 감지하여 자동 저장
+    }
+
 }

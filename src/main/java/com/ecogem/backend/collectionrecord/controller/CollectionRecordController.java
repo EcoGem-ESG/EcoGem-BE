@@ -2,6 +2,7 @@ package com.ecogem.backend.collectionrecord.controller;
 
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordRequestDto;
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordResponseDto;
+import com.ecogem.backend.collectionrecord.dto.CollectionRecordUpdateDto;
 import com.ecogem.backend.collectionrecord.service.CollectionRecordService;
 import com.ecogem.backend.domain.entity.Role;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -65,4 +66,23 @@ public class CollectionRecordController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
+
+
+    @PatchMapping("/{record_id}")
+    public ResponseEntity<Map<String, Object>> updateCollectionRecord(
+            @PathVariable("record_id") Long recordId,
+            @RequestParam("user_id") Long userId,
+            @RequestParam("role")    String roleStr,
+            @RequestBody CollectionRecordUpdateDto dto
+    ) {
+        Role role = Role.valueOf(roleStr.toUpperCase());
+        service.updateRecord(userId, role, recordId, dto);
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("success", true);
+        resp.put("code",    200);
+        resp.put("message", "RECORD_UPDATE_SUCCESS");
+        return ResponseEntity.ok(resp);
+    }
+
 }
