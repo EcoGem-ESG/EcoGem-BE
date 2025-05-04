@@ -90,7 +90,7 @@ public class CollectionRecordService {
 
         // 4) contract 확인 및 등록
         boolean existsContract = contractRepo
-                .existsByCompany_IdAndStore_Id(company.getId(), store.getId());
+                .existsByCompanyIdAndStoreId(company.getId(), store.getId());
 
         if (!existsContract) {
             Contract contract = Contract.builder()
