@@ -6,7 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ContractRepository extends JpaRepository<Contract, Long> {
-    boolean existsByCompany_IdAndStore_Id(Long companyId, Long storeId);
+    boolean existsByCompanyIdAndStoreId(Long companyId, Long storeId);
+
+    // 회사(company_id) 와 가게(store_id) 로 계약 삭제
     void deleteByCompanyIdAndStoreId(Long companyId, Long storeId);
 
     // 회사(userId) 가 맺은 계약 목록 조회
@@ -17,5 +19,6 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
             Long companyUserId,
             String keyword
     );
+
 }
 

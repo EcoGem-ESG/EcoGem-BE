@@ -14,13 +14,16 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/contracts")
+@RequestMapping("/api/contracts/stores")
 @RequiredArgsConstructor
 public class ContractController {
 
     private final ContractService service;
 
-    @GetMapping("/stores")
+    /**
+     * 계약한 가게리스트에서 목록 조회 및 가게 검색
+     */
+    @GetMapping
     public ResponseEntity<Map<String, Object>> getContractedStores(
         @RequestParam("user_id") Long userId,
         @RequestParam("role") String roleStr,
@@ -39,9 +42,9 @@ public class ContractController {
     }
 
     /**
-     * 리스트에 가게 추가
+     * 계약힌 가게 리스트에 가게 추가
      */
-    @PostMapping("/stores")
+    @PostMapping
     public ResponseEntity<Map<String, Object>> addStore(
             @RequestParam("user_id") Long userId,
             @RequestParam("role") String roleStr,
@@ -58,5 +61,30 @@ public class ContractController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(resp);
+    }
+
+    /**
+     * 계약한 가게 리스트에서 가게 삭제
+     */
+    @DeleteMapping("/{store_id}")
+    public ResponseEntity<Map<String,Object>> deleteContractedStore(
+            @PathVariable("store_id") Long storeId,
+            @RequestParam("user_id") Long userId,
+            @RequestParam("role") String roleStr
+    ) {
+        // Role 변환
+        Role role = Role.valueOf(roleStr.toUpperCase());
+
+        // 서비스 호출
+        service.deleteContractedStore(userId, role, storeId);
+
+        // 응답 생성
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("success", true);
+        resp.put("code", 200);
+        resp.put("message", "CONTRACTED_STORE_DELETE_SUCCESS");
+
+        return ResponseEntity.ok(resp);
+
     }
 }

@@ -48,7 +48,9 @@ public class ContractService {
                 .toList();
     }
 
-
+    /**
+     * 계약된 가게 추가
+     */
     @Transactional
     public void addContractedStore(
             Long userId,
@@ -77,7 +79,7 @@ public class ContractService {
                 });
 
         // 4) 계약 테이블에 없으면 추가
-        boolean exists = contractRepo.existsByCompany_IdAndStore_Id(
+        boolean exists = contractRepo.existsByCompanyIdAndStoreId(
                 company.getId(), store.getId());
         if (!exists) {
             contractRepo.save(Contract.builder()
@@ -87,5 +89,26 @@ public class ContractService {
         }
     }
 
+
+    /**
+     * 계약된 가게 삭제
+     */
+    @Transactional
+    public void deleteContractedStore(Long userId, Role role, Long storeId) {
+        // 1) 권한 체크
+        if (role != Role.COMPANY_WORKER) {
+            throw new IllegalArgumentException("Only COMPANY_WORKER can delete contracts");
+        }
+
+        // 2) 계약 존재 여부 확인
+        boolean exists = contractRepo.existsByCompanyIdAndStoreId(userId, storeId);
+        if (!exists) {
+            throw new IllegalArgumentException(
+                    "No contract found for companyUserId=" + userId + ", storeId=" + storeId);
+        }
+
+        // 3) 계약 삭제
+        contractRepo.deleteByCompanyIdAndStoreId(userId, storeId);
+    }
 
 }
