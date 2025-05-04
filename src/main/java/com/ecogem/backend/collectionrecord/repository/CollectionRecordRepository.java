@@ -8,13 +8,15 @@ import java.util.List;
 
 public interface CollectionRecordRepository extends JpaRepository<CollectionRecord, Long> {
 
-    List<CollectionRecord> findByStore_UserId(Long userId);
-    List<CollectionRecord> findByStore_UserIdAndCollectedAtBetween(
+    // STORE_OWNER 용 (최신순)
+    List<CollectionRecord> findByStore_UserIdOrderByCollectedAtDesc(Long userId);
+    List<CollectionRecord> findByStore_UserIdAndCollectedAtBetweenOrderByCollectedAtDesc(
             Long userId, LocalDate start, LocalDate end
     );
 
-    List<CollectionRecord> findByCompany_UserId(Long userId);
-    List<CollectionRecord> findByCompany_UserIdAndCollectedAtBetween(
+    // COMPANY_WORKER 용 (최신순)
+    List<CollectionRecord> findByCompany_UserIdOrderByCollectedAtDesc(Long userId);
+    List<CollectionRecord> findByCompany_UserIdAndCollectedAtBetweenOrderByCollectedAtDesc(
             Long userId, LocalDate start, LocalDate end
     );
 }

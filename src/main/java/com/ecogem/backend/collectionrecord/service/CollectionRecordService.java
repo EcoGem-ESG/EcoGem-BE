@@ -1,35 +1,48 @@
 package com.ecogem.backend.collectionrecord.service;
 
+import com.ecogem.backend.collectionrecord.dto.CollectionRecordRequestDto;
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordResponseDto;
 import com.ecogem.backend.collectionrecord.entity.CollectionRecord;
 import com.ecogem.backend.collectionrecord.repository.CollectionRecordRepository;
+import com.ecogem.backend.domain.entity.Company;
 import com.ecogem.backend.domain.entity.Role;
+import com.ecogem.backend.domain.entity.Store;
+import com.ecogem.backend.domain.repository.CompanyRepository;
+import com.ecogem.backend.domain.repository.StoreRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CollectionRecordService {
-    private final CollectionRecordRepository repo;
 
-    public CollectionRecordService(CollectionRecordRepository repo) {
-        this.repo = repo;
-    }
+    private final CollectionRecordRepository recordRepo;
+    private final StoreRepository         storeRepo;
+    private final CompanyRepository       companyRepo;
 
+    /**
+     * 1) 수거기록 조회
+     */
     public List<CollectionRecordResponseDto> getRecordsForUser(
-            Long userId, Role role, LocalDate start, LocalDate end
+            Long userId,
+            Role role,
+            LocalDate start,
+            LocalDate end
     ) {
         boolean hasRange = (start != null && end != null);
 
         List<CollectionRecord> records = switch (role) {
             case STORE_OWNER -> hasRange
-                    ? repo.findByStore_UserIdAndCollectedAtBetween(userId, start, end)
-                    : repo.findByStore_UserId(userId);
+                    ? recordRepo.findByStore_UserIdAndCollectedAtBetweenOrderByCollectedAtDesc(userId, start, end)
+                    : recordRepo.findByStore_UserIdOrderByCollectedAtDesc(userId);
+
             case COMPANY_WORKER -> hasRange
-                    ? repo.findByCompany_UserIdAndCollectedAtBetween(userId, start, end)
-                    : repo.findByCompany_UserId(userId);
+                    ? recordRepo.findByCompany_UserIdAndCollectedAtBetweenOrderByCollectedAtDesc(userId, start, end)
+                    : recordRepo.findByCompany_UserIdOrderByCollectedAtDesc(userId);
         };
 
         return records.stream()
@@ -44,5 +57,45 @@ public class CollectionRecordService {
                 )
                 .toList();
     }
-}
 
+    /**
+     * 2) 수거기록 등록
+     */
+    @Transactional
+    public void registerRecord(
+            Long userId,
+            Role role,
+            CollectionRecordRequestDto dto
+    ) {
+        // 회사 역할만 등록 허용
+        if (role != Role.COMPANY_WORKER) {
+            throw new IllegalArgumentException("Only COMPANY_WORKER can register records");
+        }
+
+        // 1) company 조회
+        Company company = companyRepo.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
+
+        // 2) store 조회 또는 자동 생성 (userId 없이, 이름만)
+        Store store = storeRepo.findByName(dto.getStoreName())
+                .orElseGet(() -> storeRepo.save(
+                        Store.builder()
+                                .name(dto.getStoreName())   // userId를 빌더에 넣지 않음 → DB에 NULL
+                                .build()
+                ));
+
+        // 3) 수거기록 빌더로 생성
+        CollectionRecord record = CollectionRecord.builder()
+                .company(company)
+                .store(store)
+                .collectedAt(dto.getCollectedAt())
+                .collectedBy(dto.getCollectedBy())
+                .volumeLiter(dto.getVolumeLiter())
+                .pricePerLiter(dto.getPricePerLiter())
+                .totalPrice(dto.getTotalPrice())
+                .build();
+
+        // 4) 저장
+        recordRepo.save(record);
+    }
+}

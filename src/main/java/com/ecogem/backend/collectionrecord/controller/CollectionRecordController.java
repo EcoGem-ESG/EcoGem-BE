@@ -1,9 +1,11 @@
 package com.ecogem.backend.collectionrecord.controller;
 
+import com.ecogem.backend.collectionrecord.dto.CollectionRecordRequestDto;
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordResponseDto;
 import com.ecogem.backend.collectionrecord.service.CollectionRecordService;
 import com.ecogem.backend.domain.entity.Role;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,5 +46,23 @@ public class CollectionRecordController {
         resp.put("records", records);
 
         return ResponseEntity.ok(resp);
+    }
+
+
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> registerCollectionRecord(
+            @RequestParam("user_id") Long userId,
+            @RequestParam("role")    String roleStr,
+            @RequestBody CollectionRecordRequestDto dto
+    ) {
+        Role role = Role.valueOf(roleStr.toUpperCase());
+        service.registerRecord(userId, role, dto);
+
+        Map<String,Object> resp = new HashMap<>();
+        resp.put("success", true);
+        resp.put("code",    201);
+        resp.put("message", "RECORD_REGISTER_SUCCESS");
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 }
