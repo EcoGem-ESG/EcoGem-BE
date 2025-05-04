@@ -19,5 +19,7 @@ public interface CollectionRecordRepository extends JpaRepository<CollectionReco
     List<CollectionRecord> findByCompany_UserIdAndCollectedAtBetweenOrderByCollectedAtDesc(
             Long userId, LocalDate start, LocalDate end
     );
+
+    boolean existsByCompany_IdAndStore_Id(Long companyId, Long storeId);
 }
 

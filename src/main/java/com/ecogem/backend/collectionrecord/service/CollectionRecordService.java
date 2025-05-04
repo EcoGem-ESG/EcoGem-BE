@@ -6,9 +6,11 @@ import com.ecogem.backend.collectionrecord.dto.CollectionRecordUpdateDto;
 import com.ecogem.backend.collectionrecord.entity.CollectionRecord;
 import com.ecogem.backend.collectionrecord.repository.CollectionRecordRepository;
 import com.ecogem.backend.domain.entity.Company;
+import com.ecogem.backend.domain.entity.Contract;
 import com.ecogem.backend.domain.entity.Role;
 import com.ecogem.backend.domain.entity.Store;
 import com.ecogem.backend.domain.repository.CompanyRepository;
+import com.ecogem.backend.domain.repository.ContractRepository;
 import com.ecogem.backend.domain.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class CollectionRecordService {
     private final CollectionRecordRepository recordRepo;
     private final StoreRepository         storeRepo;
     private final CompanyRepository       companyRepo;
+    private final ContractRepository contractRepo;
 
     /**
      * 1) 수거기록 조회
@@ -68,24 +71,36 @@ public class CollectionRecordService {
             Role role,
             CollectionRecordRequestDto dto
     ) {
-        // 회사 역할만 등록 허용
+        // 1) 권한 체크
         if (role != Role.COMPANY_WORKER) {
             throw new IllegalArgumentException("Only COMPANY_WORKER can register records");
         }
 
-        // 1) company 조회
+        // 2) company 조회
         Company company = companyRepo.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
 
-        // 2) store 조회 또는 자동 생성 (userId 없이, 이름만)
+        // 3) store 조회 또는 자동 생성 (userId 없이)
         Store store = storeRepo.findByName(dto.getStoreName())
                 .orElseGet(() -> storeRepo.save(
                         Store.builder()
-                                .name(dto.getStoreName())   // userId를 빌더에 넣지 않음 → DB에 NULL
+                                .name(dto.getStoreName())
                                 .build()
                 ));
 
-        // 3) 수거기록 빌더로 생성
+        // 4) contract 확인 및 등록
+        boolean existsContract = contractRepo
+                .existsByCompany_IdAndStore_Id(company.getId(), store.getId());
+
+        if (!existsContract) {
+            Contract contract = Contract.builder()
+                    .company(company)
+                    .store(store)
+                    .build();
+            contractRepo.save(contract);
+        }
+
+        // 5) 수거기록 빌더 생성 및 저장
         CollectionRecord record = CollectionRecord.builder()
                 .company(company)
                 .store(store)
@@ -96,7 +111,6 @@ public class CollectionRecordService {
                 .totalPrice(dto.getTotalPrice())
                 .build();
 
-        // 4) 저장
         recordRepo.save(record);
     }
 
@@ -136,4 +150,37 @@ public class CollectionRecordService {
         // 5) 트랜잭션 커밋 시 JPA가 변경 감지하여 자동 저장
     }
 
+
+    /**
+     * 4) 수거기록 삭제
+     */
+    @Transactional
+    public void deleteRecord(Long userId, Role role, Long recordId) {
+        // 1) 권한 체크: 오직 COMPANY_WORKER
+        if (role != Role.COMPANY_WORKER) {
+            throw new IllegalArgumentException("Only COMPANY_WORKER can delete records");
+        }
+
+        // 2) 수거기록 조회
+        var record = recordRepo.findById(recordId)
+                .orElseThrow(() -> new IllegalArgumentException("No record with id=" + recordId));
+
+        // 3) 본인 회사 소속 기록인지 확인
+        if (!record.getCompany().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("Cannot delete others' records");
+        }
+
+        // 캐시해두기
+        Long companyId = record.getCompany().getId();
+        Long storeId   = record.getStore().getId();
+
+        // 4) 삭제
+        recordRepo.delete(record);
+
+        // 5) 남은 수거기록이 없으면 contracts에서도 삭제
+        boolean exists = recordRepo.existsByCompany_IdAndStore_Id(companyId, storeId);
+        if (!exists) {
+            contractRepo.deleteByCompanyIdAndStoreId(companyId, storeId);
+        }
+    }
 }

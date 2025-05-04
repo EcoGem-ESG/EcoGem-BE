@@ -85,4 +85,20 @@ public class CollectionRecordController {
         return ResponseEntity.ok(resp);
     }
 
+    @DeleteMapping("/{record_id}")
+    public ResponseEntity<Map<String,Object>> deleteCollectionRecord(
+            @PathVariable("record_id") Long recordId,
+            @RequestParam("user_id") Long userId,
+            @RequestParam("role")    String roleStr
+    ) {
+        Role role = Role.valueOf(roleStr.toUpperCase());
+        service.deleteRecord(userId, role, recordId);
+
+        Map<String,Object> resp = new HashMap<>();
+        resp.put("success", true);
+        resp.put("code",    200);
+        resp.put("message", "RECORD_DELETE_SUCCESS");
+        return ResponseEntity.ok(resp);
+    }
+
 }
