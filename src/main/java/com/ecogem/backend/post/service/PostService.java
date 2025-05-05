@@ -86,6 +86,11 @@ public class PostService {
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
 
+        // 권한 체크: 요청한 storeId 와 실제 post.store.id 가 같아야
+        if (!post.getStore().getId().equals(dto.getStoreId())) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+
         // 문자열 → enum 변환, 잘못된 값이면 IllegalArgumentException 발생
         PostStatus newStatus = PostStatus.valueOf(dto.getStatus());
 
@@ -109,6 +114,10 @@ public class PostService {
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
 
+        if (!post.getStore().getId().equals(dto.getStoreId())) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+
         post.setContent(dto.getContent());
 
         return PostUpdateResponseDto.builder()
@@ -120,9 +129,13 @@ public class PostService {
      * 게시글 삭제
      */
     @Transactional
-    public PostDeleteResponseDto deletePost(Long postId) {
-        postRepo.findById(postId)
+    public PostDeleteResponseDto deletePost(Long postId, Long storeId) {
+        Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
+
+        if (!post.getStore().getId().equals(storeId)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
 
         postRepo.deleteById(postId);
 

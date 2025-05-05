@@ -10,6 +10,10 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostStatusUpdateRequestDto {
 
+    @JsonProperty("store_id")
+    @NotNull
+    private Long   storeId;
+
     @JsonProperty("status")
     @NotNull
     private String status;
