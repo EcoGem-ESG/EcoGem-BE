@@ -3,8 +3,10 @@ package com.ecogem.backend.post.service;
 import com.ecogem.backend.domain.entity.Store;
 import com.ecogem.backend.domain.repository.StoreRepository;
 import com.ecogem.backend.post.dto.*;
+import com.ecogem.backend.post.entity.Comment;
 import com.ecogem.backend.post.entity.Post;
 import com.ecogem.backend.post.entity.PostStatus;
+import com.ecogem.backend.post.repository.CommentRepository;
 import com.ecogem.backend.post.repository.PostProjection;
 import com.ecogem.backend.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -145,4 +147,6 @@ public class PostService {
                 .message("POST_DELETE_SUCCESS")
                 .build();
     }
+
+
 }
