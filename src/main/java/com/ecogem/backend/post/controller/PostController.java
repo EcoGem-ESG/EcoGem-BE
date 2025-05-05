@@ -1,8 +1,6 @@
 package com.ecogem.backend.post.controller;
 
-import com.ecogem.backend.post.dto.PostCreateRequestDto;
-import com.ecogem.backend.post.dto.PostCreateResponseDto;
-import com.ecogem.backend.post.dto.PostResponseDto;
+import com.ecogem.backend.post.dto.*;
 import com.ecogem.backend.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -75,6 +73,26 @@ public class PostController {
                         "message", "POST_CREATE_SUCCESS",
                         "data",    data
                 ));
+    }
+
+
+    /**
+     * 게시글 상태 변경
+     */
+    @PatchMapping("/{postId}/status")
+    public ResponseEntity<?> changeStatus(
+            @PathVariable Long postId,
+            @RequestBody @Validated PostStatusUpdateRequestDto request
+    ) {
+        PostStatusUpdateResponseDto data =
+                postService.updateStatus(postId, request);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "code",    200,
+                "message", "POST_STATUS_UPDATED",
+                "data",    data
+        ));
     }
 
 }

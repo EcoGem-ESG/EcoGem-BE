@@ -3,7 +3,6 @@ package com.ecogem.backend.post.entity;
 import com.ecogem.backend.domain.entity.Store;
 import jakarta.persistence.*;
 import lombok.*;
-import org.w3c.dom.Text;
 
 import java.time.LocalDateTime;
 
@@ -28,6 +27,7 @@ public class Post {
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Setter
     private PostStatus status = PostStatus.ACTIVE;
 
     @Column(name = "created_at", updatable = false)

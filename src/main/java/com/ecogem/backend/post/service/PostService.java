@@ -2,10 +2,9 @@ package com.ecogem.backend.post.service;
 
 import com.ecogem.backend.domain.entity.Store;
 import com.ecogem.backend.domain.repository.StoreRepository;
-import com.ecogem.backend.post.dto.PostCreateRequestDto;
-import com.ecogem.backend.post.dto.PostCreateResponseDto;
-import com.ecogem.backend.post.dto.PostResponseDto;
+import com.ecogem.backend.post.dto.*;
 import com.ecogem.backend.post.entity.Post;
+import com.ecogem.backend.post.entity.PostStatus;
 import com.ecogem.backend.post.repository.PostProjection;
 import com.ecogem.backend.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -75,4 +74,31 @@ public class PostService {
                 .build();
 
     }
+
+    /**
+     * 게시글 상태 변경
+     */
+    @Transactional
+    public PostStatusUpdateResponseDto updateStatus(
+            Long postId,
+            PostStatusUpdateRequestDto dto
+    ) {
+        Post post = postRepo.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
+
+        // 문자열 → enum 변환, 잘못된 값이면 IllegalArgumentException 발생
+        PostStatus newStatus = PostStatus.valueOf(dto.getStatus());
+
+        post.setStatus(newStatus);  // 엔티티 상태 변경
+
+        // @Transactional 이므로 flush 시점에 UPDATE 쿼리 실행
+        // 또는 명시적 save 호출 가능: postRepo.save(post);
+
+        return PostStatusUpdateResponseDto.builder()
+                .postId(post.getId())
+                .newStatus(newStatus.name())
+                .build();
+    }
+
+
 }
