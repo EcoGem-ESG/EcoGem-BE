@@ -95,6 +95,9 @@ public class PostController {
         ));
     }
 
+    /**
+     * 게시글 수정
+     */
     @PatchMapping("/{postId}")
     public ResponseEntity<?> updatePost(
             @PathVariable Long postId,
@@ -108,6 +111,17 @@ public class PostController {
                 "message", "POST_UPDATE_SUCCESS",
                 "data",    data
         ));
+    }
+
+    /**
+     * 게시글 삭제
+     */
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<PostDeleteResponseDto> deletePost(
+            @PathVariable Long postId
+    ) {
+        PostDeleteResponseDto response = postService.deletePost(postId);
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -115,4 +115,21 @@ public class PostService {
                 .postId(post.getId())
                 .build();
     }
+
+    /**
+     * 게시글 삭제
+     */
+    @Transactional
+    public PostDeleteResponseDto deletePost(Long postId) {
+        postRepo.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
+
+        postRepo.deleteById(postId);
+
+        return PostDeleteResponseDto.builder()
+                .success(true)
+                .code(200)
+                .message("POST_DELETE_SUCCESS")
+                .build();
+    }
 }
