@@ -198,7 +198,7 @@ public class PostService {
             throw new IllegalArgumentException("권한이 없습니다.");
         }
 
-        postRepo.deleteById(postId);
+        postRepo.delete(post); // 댓글과 대댓글은 자동으로 삭제됨
 
         return PostDeleteResponseDto.builder()
                 .success(true)

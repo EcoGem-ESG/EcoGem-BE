@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "posts")
@@ -37,6 +39,9 @@ public class Post {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
     @PrePersist
     private void onCreate(){
         this.createdAt = LocalDateTime.now();
@@ -47,6 +52,5 @@ public class Post {
     private void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-
 
 }
