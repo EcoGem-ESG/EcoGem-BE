@@ -34,7 +34,7 @@ public class Comment {
     private Comment parent;
 
     /** 부모댓글 → 자식(대댓글) 목록 */
-    @OneToMany(mappedBy = "parent")
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<Comment> children = new ArrayList<>();
 
