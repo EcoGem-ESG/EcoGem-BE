@@ -31,4 +31,10 @@ public class Company {
 
     @Column(name = "company_phone", nullable = false, unique = true)
     private String companyPhone;
+
+    @Column
+    private Double latitude;
+
+    @Column
+    private Double longitude;
 }

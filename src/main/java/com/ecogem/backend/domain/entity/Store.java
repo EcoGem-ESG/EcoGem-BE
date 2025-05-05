@@ -36,4 +36,10 @@ public class Store {
     @Column(name = "delivery_type")
     private DeliveryType deliveryType;
 
+    @Column
+    private Double latitude;
+
+    @Column
+    private Double longitude;
+
 }
