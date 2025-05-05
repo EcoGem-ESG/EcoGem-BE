@@ -1,9 +1,6 @@
 package com.ecogem.backend.post.controller;
 
-import com.ecogem.backend.post.dto.CommentCreateRequestDto;
-import com.ecogem.backend.post.dto.CommentCreateResponseDto;
-import com.ecogem.backend.post.dto.CommentUpdateRequestDto;
-import com.ecogem.backend.post.dto.CommentUpdateResponseDto;
+import com.ecogem.backend.post.dto.*;
 import com.ecogem.backend.post.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -54,5 +51,19 @@ public class CommentController {
                 "message", "COMMENT_UPDATE_SUCCESS",
                 "data",    data
         ));
+    }
+
+    /**
+     * 댓글/대댓글 소프트 삭제
+     */
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<?> deleteComment(
+            @PathVariable Long commentId,
+            @RequestParam("user_id") Long userId   // 테스트용으로 쿼리 파라미터로 받음
+    ) {
+        CommentDeleteResponseDto data =
+                commentService.deleteComment(commentId, userId);
+
+        return ResponseEntity.ok(data);
     }
 }

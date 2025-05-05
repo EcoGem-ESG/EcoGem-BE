@@ -1,9 +1,6 @@
 package com.ecogem.backend.post.service;
 
-import com.ecogem.backend.post.dto.CommentCreateRequestDto;
-import com.ecogem.backend.post.dto.CommentCreateResponseDto;
-import com.ecogem.backend.post.dto.CommentUpdateRequestDto;
-import com.ecogem.backend.post.dto.CommentUpdateResponseDto;
+import com.ecogem.backend.post.dto.*;
 import com.ecogem.backend.post.entity.Comment;
 import com.ecogem.backend.post.entity.Post;
 import com.ecogem.backend.post.repository.CommentRepository;
@@ -72,6 +69,30 @@ public class CommentService {
 
         return CommentUpdateResponseDto.builder()
                 .commentId(comment.getId())
+                .build();
+    }
+
+    /**
+     * 댓글/대댓글 소프트 삭제
+     */
+    @Transactional
+    public CommentDeleteResponseDto deleteComment(Long commentId, Long userId) {
+        Comment comment = commentRepo.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found: " + commentId));
+
+        // 작성자 확인
+        if (!comment.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+
+        // 소프트 삭제
+        comment.softDelete();
+
+        // 응답
+        return CommentDeleteResponseDto.builder()
+                .success(true)
+                .code(200)
+                .message("COMMENT_DELETE_SUCCESS")
                 .build();
     }
 }
