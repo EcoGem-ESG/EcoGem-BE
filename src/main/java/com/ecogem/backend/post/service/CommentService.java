@@ -2,6 +2,8 @@ package com.ecogem.backend.post.service;
 
 import com.ecogem.backend.post.dto.CommentCreateRequestDto;
 import com.ecogem.backend.post.dto.CommentCreateResponseDto;
+import com.ecogem.backend.post.dto.CommentUpdateRequestDto;
+import com.ecogem.backend.post.dto.CommentUpdateResponseDto;
 import com.ecogem.backend.post.entity.Comment;
 import com.ecogem.backend.post.entity.Post;
 import com.ecogem.backend.post.repository.CommentRepository;
@@ -17,6 +19,9 @@ public class CommentService {
     private final CommentRepository commentRepo;
     private final PostRepository    postRepo;
 
+    /**
+     * 댓글/대댓글 작성
+     */
     @Transactional
     public CommentCreateResponseDto createComment(CommentCreateRequestDto req) {
         // 1) Post 조회
@@ -44,6 +49,29 @@ public class CommentService {
         // 5) 응답
         return CommentCreateResponseDto.builder()
                 .commentId(saved.getId())
+                .build();
+    }
+
+    /**
+     * 댓글/대댓글 내용 수정
+     */
+    @Transactional
+    public CommentUpdateResponseDto updateComment(
+            Long commentId,
+            CommentUpdateRequestDto req
+    ) {
+        Comment comment = commentRepo.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found: " + commentId));
+
+        // 작성자 본인만 수정 허용
+        if (!comment.getUserId().equals(req.getUserId())) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+
+        comment.updateContent(req.getContent());
+
+        return CommentUpdateResponseDto.builder()
+                .commentId(comment.getId())
                 .build();
     }
 }

@@ -2,6 +2,8 @@ package com.ecogem.backend.post.controller;
 
 import com.ecogem.backend.post.dto.CommentCreateRequestDto;
 import com.ecogem.backend.post.dto.CommentCreateResponseDto;
+import com.ecogem.backend.post.dto.CommentUpdateRequestDto;
+import com.ecogem.backend.post.dto.CommentUpdateResponseDto;
 import com.ecogem.backend.post.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,9 @@ public class CommentController {
 
     private final CommentService commentService;
 
+    /**
+     * 댓글/대댓글 작성
+     */
     @PostMapping
     public ResponseEntity<?> createComment(
             @RequestBody @Validated CommentCreateRequestDto request
@@ -29,6 +34,25 @@ public class CommentController {
                 "code", 200,
                 "message", "COMMENT_CREATE_SUCCESS",
                 "data", data
+        ));
+    }
+
+    /**
+     * 댓글/대댓글 내용 수정
+     */
+    @PatchMapping("/{commentId}")
+    public ResponseEntity<?> updateComment(
+            @PathVariable Long commentId,
+            @RequestBody @Validated CommentUpdateRequestDto request
+    ) {
+        CommentUpdateResponseDto data =
+                commentService.updateComment(commentId, request);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "code",    200,
+                "message", "COMMENT_UPDATE_SUCCESS",
+                "data",    data
         ));
     }
 }
