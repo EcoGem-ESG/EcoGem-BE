@@ -54,6 +54,21 @@ public class PostController {
     }
 
     /**
+     * 게시글 상세 조회
+     */
+    @GetMapping("/{postId}")
+    public ResponseEntity<?> getPostDetail(@PathVariable Long postId) {
+        PostDetailResponseDto data = postService.getPostDetail(postId);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "code", 200,
+                "message", "POST_DETAIL_SUCCESS",
+                "data", data
+        ));
+    }
+
+    /**
      * 게시글 작성
      */
     @PostMapping

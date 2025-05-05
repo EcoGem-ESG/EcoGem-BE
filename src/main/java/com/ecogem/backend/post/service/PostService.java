@@ -13,7 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +25,7 @@ public class PostService {
 
     private final PostRepository postRepo;
     private final StoreRepository storeRepo;
+    private final CommentRepository commentRepo;
 
     /** 반경 필터링 */
     public List<PostResponseDto> listPosts(double lat, double lng, int radiusKm) {
@@ -53,6 +57,61 @@ public class PostService {
                 )
                 .collect(Collectors.toList());
     }
+
+    /**
+     * 게시글 상세 조회
+     */
+    @Transactional(readOnly = true)
+    public PostDetailResponseDto getPostDetail(Long postId) {
+        // 1) Post 조회
+        Post post = postRepo.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
+
+        // 2) 댓글(flat) 작성순 조회 + DTO 변환
+        List<CommentDetailResponseDto> flat = commentRepo
+                .findByPostIdOrderByCreatedAtAsc(postId)
+                .stream()
+                .map(c -> CommentDetailResponseDto.builder()
+                        .commentId(c.getId())
+                        .userId(c.getUserId())
+                        .content(c.getContent())
+                        .parentId(c.getParent() != null ? c.getParent().getId() : null)
+                        .createdAt(c.getCreatedAt())
+                        .build()
+                )
+                .collect(Collectors.toList());
+
+        // 3) ID→DTO 매핑
+        Map<Long, CommentDetailResponseDto> map = new LinkedHashMap<>();
+        flat.forEach(dto -> map.put(dto.getCommentId(), dto));
+
+        // 4) 트리 구조로 묶기
+        List<CommentDetailResponseDto> roots = new ArrayList<>();
+        for (CommentDetailResponseDto dto : map.values()) {
+            if (dto.getParentId() == null) {
+                roots.add(dto);
+            } else {
+                CommentDetailResponseDto parentDto = map.get(dto.getParentId());
+                if (parentDto != null) {
+                    parentDto.getChildren().add(dto);
+                } else {
+                    // 혹시 부모가 없는 경우엔 최상위로 올리거나 무시
+                    roots.add(dto);
+                }
+            }
+        }
+
+        // 5) 최종 DTO 조립 (children 가진 roots 리스트 사용)
+        return PostDetailResponseDto.builder()
+                .postId(post.getId())
+                .storeName(post.getStore().getName())
+                .content(post.getContent())
+                .status(post.getStatus().name())
+                .createdAt(post.getCreatedAt())
+                .comments(roots)
+                .build();
+    }
+
 
     /**
      * 게시글 작성
