@@ -21,13 +21,14 @@ public class Post {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
+    @Setter
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    @Setter
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Setter
     private PostStatus status = PostStatus.ACTIVE;
 
     @Column(name = "created_at", updatable = false)

@@ -101,4 +101,18 @@ public class PostService {
     }
 
 
+    /**
+     * 게시글 내용(content) 수정
+     */
+    @Transactional
+    public PostUpdateResponseDto updatePost(Long postId, PostUpdateRequestDto dto) {
+        Post post = postRepo.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
+
+        post.setContent(dto.getContent());
+
+        return PostUpdateResponseDto.builder()
+                .postId(post.getId())
+                .build();
+    }
 }

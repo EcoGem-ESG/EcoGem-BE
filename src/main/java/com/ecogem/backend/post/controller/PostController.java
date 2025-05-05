@@ -95,4 +95,19 @@ public class PostController {
         ));
     }
 
+    @PatchMapping("/{postId}")
+    public ResponseEntity<?> updatePost(
+            @PathVariable Long postId,
+            @RequestBody @Validated PostUpdateRequestDto request
+    ) {
+        PostUpdateResponseDto data = postService.updatePost(postId, request);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "code",    200,
+                "message", "POST_UPDATE_SUCCESS",
+                "data",    data
+        ));
+    }
+
 }
