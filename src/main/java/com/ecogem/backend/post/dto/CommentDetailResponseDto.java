@@ -20,6 +20,9 @@ public class CommentDetailResponseDto {
     @JsonProperty("user_id")
     private Long userId;
 
+    @JsonProperty("author_name")
+    private String authorName;
+
     @JsonProperty("content")
     private String content;
 
@@ -28,6 +31,10 @@ public class CommentDetailResponseDto {
 
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
+
+    /** 소프트 삭제 여부 */
+    @JsonProperty("deleted")
+    private boolean deleted;
 
     /** 대댓글(자식) 리스트 */
     @JsonProperty("children")

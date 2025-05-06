@@ -1,6 +1,8 @@
 package com.ecogem.backend.post.service;
 
+import com.ecogem.backend.domain.entity.Company;
 import com.ecogem.backend.domain.entity.Store;
+import com.ecogem.backend.domain.repository.CompanyRepository;
 import com.ecogem.backend.domain.repository.StoreRepository;
 import com.ecogem.backend.post.dto.*;
 import com.ecogem.backend.post.entity.Comment;
@@ -26,6 +28,7 @@ public class PostService {
     private final PostRepository postRepo;
     private final StoreRepository storeRepo;
     private final CommentRepository commentRepo;
+    private final CompanyRepository companyRepo;
 
     /** 반경 필터링 */
     public List<PostResponseDto> listPosts(double lat, double lng, int radiusKm) {
@@ -74,9 +77,11 @@ public class PostService {
                 .map(c -> CommentDetailResponseDto.builder()
                         .commentId(c.getId())
                         .userId(c.getUserId())
+                        .authorName(resolveAuthorName(c.getUserId()))
                         .content(c.getContent())
                         .parentId(c.getParent() != null ? c.getParent().getId() : null)
                         .createdAt(c.getCreatedAt())
+                        .deleted(c.isDeleted())
                         .build()
                 )
                 .collect(Collectors.toList());
@@ -104,12 +109,26 @@ public class PostService {
         // 5) 최종 DTO 조립 (children 가진 roots 리스트 사용)
         return PostDetailResponseDto.builder()
                 .postId(post.getId())
+                .storeId(post.getStore().getId())
                 .storeName(post.getStore().getName())
                 .content(post.getContent())
                 .status(post.getStatus().name())
                 .createdAt(post.getCreatedAt())
                 .comments(roots)
                 .build();
+    }
+
+    /** userId 에 해당하는 회사명/가게명을 반환 */
+    private String resolveAuthorName(Long userId) {
+        // 회사(userId) 조회 시 존재하면 회사명
+        return companyRepo.findByUserId(userId)
+                .map(Company::getName)
+                .orElseGet(() -> {
+                    // 없으면 가게(userId) 조회 - StoreRepository 에 findByUserId 메서드가 필요합니다
+                    return storeRepo.findById(userId)
+                            .map(Store::getName)
+                            .orElse("알 수 없음");
+                });
     }
 
 
