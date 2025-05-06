@@ -50,15 +50,22 @@ public class CollectionRecordService {
         };
 
         return records.stream()
-                .map(r -> CollectionRecordResponseDto.builder()
-                        .collectedAt(r.getCollectedAt())
-                        .collectedBy(r.getCollectedBy())
-                        .storeName(r.getStore().getName())
-                        .volumeLiter(r.getVolumeLiter())
-                        .pricePerLiter(r.getPricePerLiter())
-                        .totalPrice(r.getTotalPrice())
-                        .build()
-                )
+                .map(r -> {
+                    // 역할에 따라 표시할 이름 선택
+                    String nameToShow = (role == Role.COMPANY_WORKER)
+                            ? r.getStore().getName()
+                            : r.getCompany().getName();
+
+                    return CollectionRecordResponseDto.builder()
+                            .recordId(r.getId())
+                            .collectedAt(r.getCollectedAt())
+                            .collectedBy(r.getCollectedBy())
+                            .storeName(nameToShow)
+                            .volumeLiter(r.getVolumeLiter())
+                            .pricePerLiter(r.getPricePerLiter())
+                            .totalPrice(r.getTotalPrice())
+                            .build();
+                })
                 .toList();
     }
 

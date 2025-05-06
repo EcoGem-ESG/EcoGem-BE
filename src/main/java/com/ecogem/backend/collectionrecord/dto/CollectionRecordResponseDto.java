@@ -15,6 +15,8 @@ import java.time.LocalDate;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CollectionRecordResponseDto {
 
+    @JsonProperty("record_id")
+    private final Long   recordId;
 
     @JsonProperty("collected_at")
     private final LocalDate collectedAt;

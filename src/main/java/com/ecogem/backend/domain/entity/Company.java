@@ -7,7 +7,7 @@ import lombok.*;
 @Table(name = "companies")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
+@Builder(access = AccessLevel.PUBLIC)
 @Getter
 public class Company {
 

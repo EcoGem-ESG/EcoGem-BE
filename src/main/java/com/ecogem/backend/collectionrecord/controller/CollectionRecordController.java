@@ -15,6 +15,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/collection-records")
+@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })   // Live Server 주소
 public class CollectionRecordController {
 
     private final CollectionRecordService service;
@@ -50,6 +51,9 @@ public class CollectionRecordController {
     }
 
 
+    /**
+     * 수거기록 등록
+     */
     @PostMapping
     public ResponseEntity<Map<String, Object>> registerCollectionRecord(
             @RequestParam("user_id") Long userId,
