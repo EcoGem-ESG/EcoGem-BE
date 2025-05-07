@@ -62,6 +62,6 @@ public class Comment {
     /** 소프트 삭제 로직 */
     public void softDelete() {
         this.deleted = true;
-        this.content = "[삭제된 댓글]";
+        this.content = "[Deleted comment]";
     }
 }
