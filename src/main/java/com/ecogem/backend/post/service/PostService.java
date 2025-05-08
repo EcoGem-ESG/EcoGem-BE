@@ -125,7 +125,7 @@ public class PostService {
                 .map(Company::getName)
                 .orElseGet(() -> {
                     // 없으면 가게(userId) 조회 - StoreRepository 에 findByUserId 메서드가 필요합니다
-                    return storeRepo.findById(userId)
+                    return storeRepo.findByUserId(userId)
                             .map(Store::getName)
                             .orElse("알 수 없음");
                 });
