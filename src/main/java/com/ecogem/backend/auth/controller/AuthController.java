@@ -4,6 +4,7 @@ import com.ecogem.backend.auth.domain.User;
 import com.ecogem.backend.auth.dto.LoginRequestDto;
 import com.ecogem.backend.auth.dto.SignupRequestDto;
 import com.ecogem.backend.auth.service.AuthService;
+import com.ecogem.backend.auth.security.JwtProvider; // ✅ 추가
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +19,9 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtProvider jwtProvider;
 
-    // ✅ 회원가입
+    // Sign in
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequestDto request) {
         authService.signup(
@@ -37,12 +39,12 @@ public class AuthController {
         );
     }
 
-    // ✅ 로그인
+    // Login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto request) {
         User user = authService.login(request.getLoginId(), request.getPwd());
 
-        String token = "mocked-jwt-token";
+        String token = jwtProvider.createToken(user.getId(), user.getRole().name());
 
         Map<String, Object> data = new HashMap<>();
         data.put("token", token);
