@@ -23,13 +23,12 @@ public class Company {
     private String managerName;       // 담당자명
     private String companyPhone;      // 업체 전화번호
 
+
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "company_waste_types", joinColumns = @JoinColumn(name = "company_id"))
     @Column(name = "waste_type")
     private List<String> wasteTypes;  // 폐기물 종류 목록 (예: edible_oil, animal_fat 등)
-
-    @OneToMany(mappedBy = "company")
-    private List<User> users;
 
 
 }

@@ -1,14 +1,18 @@
 package com.ecogem.backend.contract.service;
 
+import com.ecogem.backend.auth.domain.Role;
+import com.ecogem.backend.companies.domain.Company;
+import com.ecogem.backend.companies.repository.CompanyRepository;
 import com.ecogem.backend.contract.dto.AddContractedStoreRequestDto;
 import com.ecogem.backend.contract.dto.ContractedStoreResponseDto;
-import com.ecogem.backend.domain.entity.Company;
-import com.ecogem.backend.domain.entity.Contract;
-import com.ecogem.backend.domain.entity.Role;
-import com.ecogem.backend.domain.entity.Store;
-import com.ecogem.backend.domain.repository.CompanyRepository;
-import com.ecogem.backend.domain.repository.ContractRepository;
-import com.ecogem.backend.domain.repository.StoreRepository;
+
+import com.ecogem.backend.contract.entity.Contract;
+
+
+import com.ecogem.backend.contract.repository.ContractRepository;
+
+import com.ecogem.backend.store.domain.Store;
+import com.ecogem.backend.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,12 +32,18 @@ public class ContractService {
             throw new IllegalArgumentException("Only COMPANY_WORKER can view contracted stores");
         }
 
+        // ① userId로 Company 조회
+        Company company = companyRepo.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
+        // ② companyId 추출
+        Long companyId = company.getId();
+
         List<Contract> contracts;
         if (search != null && !search.isBlank()) {
             contracts = contractRepo
-                    .findByCompany_UserIdAndStore_NameContainingIgnoreCase(userId, search);
+                    .findByCompany_IdAndStore_NameContainingIgnoreCase(companyId, search);
         } else {
-            contracts = contractRepo.findByCompany_UserId(userId);
+            contracts = contractRepo.findByCompany_Id(companyId);
         }
 
         return contracts.stream()

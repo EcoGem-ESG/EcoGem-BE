@@ -1,9 +1,9 @@
 package com.ecogem.backend.contract.controller;
 
+import com.ecogem.backend.auth.domain.Role;
 import com.ecogem.backend.contract.dto.AddContractedStoreRequestDto;
 import com.ecogem.backend.contract.dto.ContractedStoreResponseDto;
 import com.ecogem.backend.contract.service.ContractService;
-import com.ecogem.backend.domain.entity.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

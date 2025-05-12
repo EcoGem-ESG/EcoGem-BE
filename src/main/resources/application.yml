@@ -13,3 +13,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+jwt:
+  secret: YOUR_BASE64_OR_LONG_RANDOM_SECRET_KEY_HERE

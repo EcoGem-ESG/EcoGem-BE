@@ -10,9 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class Store {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
@@ -20,10 +18,24 @@ public class Store {
     private String storePhone;
     private String ownerPhone;
 
+    @Column private Double latitude;
+    @Column private Double longitude;
+
     @Enumerated(EnumType.STRING)
     private DeliveryType deliveryType;
 
     public enum DeliveryType {
-        SMALL, LARGE
+        SMALL, MEDIUM, LARGE, IRREGULAR
+    }
+
+    // ← 이 메서드를 추가하세요
+    public void updateProfile(String address,
+                              String storePhone,
+                              String ownerPhone,
+                              DeliveryType deliveryType) {
+        this.address = address;
+        this.storePhone = storePhone;
+        this.ownerPhone  = ownerPhone;
+        this.deliveryType = deliveryType;
     }
 }

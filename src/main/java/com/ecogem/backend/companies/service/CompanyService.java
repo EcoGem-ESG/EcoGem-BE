@@ -6,7 +6,6 @@ import com.ecogem.backend.auth.repositorty.UserRepository;
 import com.ecogem.backend.companies.domain.Company;
 import com.ecogem.backend.companies.dto.CompanyRequestDto;
 import com.ecogem.backend.companies.repository.CompanyRepository;
-import com.ecogem.companies.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
