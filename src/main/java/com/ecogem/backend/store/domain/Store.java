@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Table(name = "stores")
 public class Store {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
