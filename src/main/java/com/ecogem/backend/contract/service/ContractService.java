@@ -23,6 +23,7 @@ public class ContractService {
     private final StoreRepository storeRepo;
     private final CompanyRepository companyRepo;
 
+    @Transactional(readOnly = true)
     public List<ContractedStoreResponseDto> getContractedStore(
             Long userId, Role role, String search
     ) {
