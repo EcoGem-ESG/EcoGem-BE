@@ -1,9 +1,11 @@
 package com.ecogem.backend.post.controller;
 
+import com.ecogem.backend.auth.security.CustomUserDetails;
 import com.ecogem.backend.post.dto.*;
 import com.ecogem.backend.post.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,16 +24,16 @@ public class CommentController {
      */
     @PostMapping
     public ResponseEntity<?> createComment(
-            @RequestBody @Validated CommentCreateRequestDto request
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @RequestBody @Validated CommentCreateRequestDto req
     ) {
-        CommentCreateResponseDto data =
-                commentService.createComment(request);
-
+        Long userId = principal.getUser().getId();
+        var data = commentService.createComment(req, userId);
         return ResponseEntity.ok(Map.of(
                 "success", true,
-                "code", 200,
+                "code",    200,
                 "message", "COMMENT_CREATE_SUCCESS",
-                "data", data
+                "data",    data
         ));
     }
 
@@ -40,12 +42,12 @@ public class CommentController {
      */
     @PatchMapping("/{commentId}")
     public ResponseEntity<?> updateComment(
+            @AuthenticationPrincipal CustomUserDetails principal,
             @PathVariable Long commentId,
-            @RequestBody @Validated CommentUpdateRequestDto request
+            @RequestBody @Validated CommentUpdateRequestDto req
     ) {
-        CommentUpdateResponseDto data =
-                commentService.updateComment(commentId, request);
-
+        Long userId = principal.getUser().getId();
+        var data   = commentService.updateComment(commentId, req, userId);
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "code",    200,
@@ -59,12 +61,16 @@ public class CommentController {
      */
     @DeleteMapping("/{commentId}")
     public ResponseEntity<?> deleteComment(
-            @PathVariable Long commentId,
-            @RequestParam("user_id") Long userId   // 테스트용으로 쿼리 파라미터로 받음
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable Long commentId
     ) {
-        CommentDeleteResponseDto data =
-                commentService.deleteComment(commentId, userId);
-
-        return ResponseEntity.ok(data);
+        Long userId = principal.getUser().getId();
+        var data   = commentService.deleteComment(commentId, userId);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "code",    200,
+                "message", "COMMENT_DELETE_SUCCESS",
+                "data",    data
+        ));
     }
 }

@@ -11,4 +11,6 @@ public class CompanyRequestDto {
     private String managerName;
     private String companyPhone;
     private List<String> wasteTypes;
+    private Double latitude;
+    private Double longitude;
 }

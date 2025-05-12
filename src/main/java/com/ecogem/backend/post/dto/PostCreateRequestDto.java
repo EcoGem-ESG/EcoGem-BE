@@ -11,11 +11,6 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PostCreateRequestDto {
 
-    /** 테스트용으로 store_id 를 직접 전달받습니다 */
-    @JsonProperty("store_id")
-    @NotNull
-    private Long   storeId;
-
     @JsonProperty("content")
     @NotBlank
     private String content;

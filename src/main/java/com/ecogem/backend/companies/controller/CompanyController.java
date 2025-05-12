@@ -1,11 +1,13 @@
 package com.ecogem.backend.companies.controller;
 
 
+import com.ecogem.backend.auth.security.CustomUserDetails;
 import com.ecogem.backend.companies.service.CompanyService;
 import com.ecogem.backend.companies.dto.CompanyRequestDto;
 import com.ecogem.backend.companies.dto.CompanyResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,12 +17,13 @@ public class CompanyController {
 
     private final CompanyService companyService;
 
-    @PostMapping("/{userId}")
+    @PostMapping
     public ResponseEntity<CompanyResponseDto> registerCompany(
-            @PathVariable Long userId,
-            @RequestBody CompanyRequestDto requestDto
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @RequestBody CompanyRequestDto dto
     ) {
-        Long companyId = companyService.registerCompany(userId, requestDto);
+        Long userId = principal.getUser().getId();
+        Long companyId = companyService.registerCompany(userId, dto);
 
         CompanyResponseDto response = new CompanyResponseDto(
                 true,

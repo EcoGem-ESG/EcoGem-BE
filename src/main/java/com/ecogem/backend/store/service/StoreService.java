@@ -35,6 +35,12 @@ public class StoreService {
         user.setStore(store);
         userRepository.save(user);
 
-        return new StoreResponseDto(true, 200, "STORE_REGISTER_SUCCESS", store.getId());
+        // 3) 응답 DTO 반환
+        return new StoreResponseDto(
+                true,
+                200,
+                "STORE_REGISTER_SUCCESS",
+                new StoreResponseDto.Data(store.getId())
+        );
     }
 }

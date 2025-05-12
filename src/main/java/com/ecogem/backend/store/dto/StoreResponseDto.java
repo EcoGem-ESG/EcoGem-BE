@@ -9,5 +9,11 @@ public class StoreResponseDto {
     private boolean success;
     private int code;
     private String message;
-    private Long storeId;
+    private Data data;
+
+    @Getter
+    @AllArgsConstructor
+    public static class Data {
+        private Long storeId;
+    }
 }

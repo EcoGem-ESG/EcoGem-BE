@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Table(name = "companies")
 public class Company {
 
     @Id
@@ -23,7 +24,8 @@ public class Company {
     private String managerName;       // 담당자명
     private String companyPhone;      // 업체 전화번호
 
-
+    @Column private Double latitude;
+    @Column private Double longitude;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "company_waste_types", joinColumns = @JoinColumn(name = "company_id"))
