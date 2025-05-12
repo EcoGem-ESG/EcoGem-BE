@@ -1,9 +1,7 @@
 package com.ecogem.backend.post.service;
 
-import com.ecogem.backend.domain.entity.Company;
-import com.ecogem.backend.domain.entity.Store;
-import com.ecogem.backend.domain.repository.CompanyRepository;
-import com.ecogem.backend.domain.repository.StoreRepository;
+import com.ecogem.backend.companies.domain.Company;
+import com.ecogem.backend.companies.repository.CompanyRepository;
 import com.ecogem.backend.post.dto.*;
 import com.ecogem.backend.post.entity.Comment;
 import com.ecogem.backend.post.entity.Post;
@@ -11,6 +9,8 @@ import com.ecogem.backend.post.entity.PostStatus;
 import com.ecogem.backend.post.repository.CommentRepository;
 import com.ecogem.backend.post.repository.PostProjection;
 import com.ecogem.backend.post.repository.PostRepository;
+import com.ecogem.backend.store.domain.Store;
+import com.ecogem.backend.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

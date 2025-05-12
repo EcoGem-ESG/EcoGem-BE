@@ -1,8 +1,9 @@
 package com.ecogem.backend.reports.service;
 
+import com.ecogem.backend.auth.domain.Role;
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordResponseDto;
 import com.ecogem.backend.collectionrecord.service.CollectionRecordService;
-import com.ecogem.backend.domain.entity.Role;
+
 import com.ecogem.backend.reports.util.CsvGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

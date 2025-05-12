@@ -1,6 +1,5 @@
 package com.ecogem.backend.reports.controller;
 
-import com.ecogem.backend.domain.entity.Role;
 import com.ecogem.backend.reports.dto.ReportRequestDto;
 import com.ecogem.backend.reports.service.ReportService;
 import com.ecogem.backend.reports.dto.ReportCreateResponse;

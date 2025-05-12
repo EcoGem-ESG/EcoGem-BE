@@ -1,6 +1,7 @@
 package com.ecogem.backend.post.entity;
 
-import com.ecogem.backend.domain.entity.Store;
+
+import com.ecogem.backend.store.domain.Store;
 import jakarta.persistence.*;
 import lombok.*;
 

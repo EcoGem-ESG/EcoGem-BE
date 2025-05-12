@@ -20,29 +20,38 @@ public class MypageService {
     private final StoreRepository storeRepository;
 
     public Object getMypage(User user) {
-        if (user.getRole() == Role.COMPANY_OWNER) {
-            Company company = companyRepository.findByUser(user);
+        if (user.getRole() == Role.COMPANY_WORKER) {
+            Company company = companyRepository
+                    .findByUserId(user.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("No company for userId=" + user.getId()));
             return new CompanyMypageResponse(company);
         } else {
-            Store store = storeRepository.findByUser(user);
+            Store store = storeRepository
+                    .findByUserId(user.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("No store for userId=" + user.getId()));
             return new StoreMypageResponse(store);
         }
     }
 
     public void updateMypage(User user, MypageUpdateRequest request) {
-        if (user.getRole() == Role.COMPANY_OWNER) {
-            Company company = companyRepository.findByUser(user);
+        if (user.getRole() == Role.COMPANY_WORKER) {
+            Company company = companyRepository
+                    .findByUserId(user.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("No company for userId=" + user.getId()));
             company.setAddress(request.getAddress());
             company.setManagerName(request.getManagerName());
             company.setCompanyPhone(request.getCompanyPhone());
             company.setWasteTypes(request.getWasteTypes());
         } else {
-            Store store = storeRepository.findByUser(user);
-            store.setAddress(request.getAddress());
-            store.setStorePhone(request.getStorePhone());
-            store.setOwnerPhone(request.getOwnerPhone());
-            store.setDeliveryType(Store.DeliveryType.valueOf(request.getDeliveryType().toUpperCase()));
-
+            Store store = storeRepository
+                    .findByUserId(user.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("No store for userId=" + user.getId()));
+            store.updateProfile(
+                    request.getAddress(),
+                    request.getStorePhone(),
+                    request.getOwnerPhone(),
+                    Store.DeliveryType.valueOf(request.getDeliveryType().toUpperCase())
+            );
         }
     }
 }
