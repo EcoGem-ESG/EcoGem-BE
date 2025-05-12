@@ -31,6 +31,7 @@ public class CollectionRecordService {
     /**
      * 1) 수거기록 조회
      */
+    @Transactional(readOnly = true)
     public List<CollectionRecordResponseDto> getRecordsForUser(
             Long userId,
             Role role,
