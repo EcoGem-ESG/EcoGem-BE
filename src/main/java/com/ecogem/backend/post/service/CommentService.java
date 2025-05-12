@@ -20,7 +20,10 @@ public class CommentService {
      * 댓글/대댓글 작성
      */
     @Transactional
-    public CommentCreateResponseDto createComment(CommentCreateRequestDto req) {
+    public CommentCreateResponseDto createComment(
+            CommentCreateRequestDto req,
+            Long userId
+    ) {
         // 1) Post 조회
         Post post = postRepo.findById(req.getPostId())
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + req.getPostId()));
@@ -35,8 +38,8 @@ public class CommentService {
         // 3) 엔티티 생성
         Comment comment = Comment.builder()
                 .post(post)
-                .parent(parent) // 대댓글이면 parentId→Comment 객체로 조회 후 대입
-                .userId(req.getUserId())
+                .parent(parent)
+                .userId(userId)        // ← req.getUserId() → userId
                 .content(req.getContent())
                 .build();
 
@@ -49,24 +52,29 @@ public class CommentService {
                 .build();
     }
 
+
     /**
      * 댓글/대댓글 내용 수정
      */
     @Transactional
     public CommentUpdateResponseDto updateComment(
             Long commentId,
-            CommentUpdateRequestDto req
+            CommentUpdateRequestDto req,
+            Long userId
     ) {
+        // 1) Comment 조회
         Comment comment = commentRepo.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found: " + commentId));
 
-        // 작성자 본인만 수정 허용
-        if (!comment.getUserId().equals(req.getUserId())) {
+        // 2) 작성자 본인만 수정 허용
+        if (!comment.getUserId().equals(userId)) {  // ← req.getUserId() → userId
             throw new IllegalArgumentException("권한이 없습니다.");
         }
 
+        // 3) 내용 업데이트
         comment.updateContent(req.getContent());
 
+        // 4) 응답
         return CommentUpdateResponseDto.builder()
                 .commentId(comment.getId())
                 .build();

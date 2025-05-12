@@ -24,6 +24,8 @@ public class CompanyService {
                 .managerName(request.getManagerName())
                 .companyPhone(request.getCompanyPhone())
                 .wasteTypes(request.getWasteTypes())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
                 .build();
         companyRepository.save(company);
 
