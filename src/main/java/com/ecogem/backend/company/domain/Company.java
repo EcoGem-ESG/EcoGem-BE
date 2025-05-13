@@ -1,9 +1,9 @@
-package com.ecogem.backend.companies.domain;
+package com.ecogem.backend.company.domain;
 
 
 import jakarta.persistence.*;
 import lombok.*;
-import com.ecogem.backend.auth.domain.User;
+
 import java.util.List;
 
 @Entity

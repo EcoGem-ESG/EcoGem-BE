@@ -4,6 +4,7 @@ import com.ecogem.backend.auth.security.CustomUserDetails;
 import com.ecogem.backend.post.dto.*;
 import com.ecogem.backend.post.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -28,10 +29,29 @@ public class PostController {
             @RequestParam(value = "radius", required = false) Integer radiusKm
     ) {
         Long userId = principal.getUser().getId();
-        var data = postService.listPostsByCompany(userId, radiusKm);
+        String role = principal.getUser().getRole().name();
+
+        List<PostResponseDto> data;
+        if ("COMPANY_WORKER".equals(role)) {
+            // 회사: radiusKm 있으면 필터, 없으면 전체
+            data = postService.listPostsByCompany(userId, radiusKm);
+        } else if ("STORE_OWNER".equals(role)) {
+            // 가게 주인: 반경 무시, 전체 최신순
+            data = postService.listAllPosts();
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                            "success", false,
+                            "code",    403,
+                            "message", "권한이 없습니다."
+                    ));
+        }
+
         return ResponseEntity.ok(Map.of(
-                "success", true, "code", 200,
-                "message", "POST_LIST", "data", data
+                "success", true,
+                "code",    200,
+                "message", "POST_LIST",
+                "data",    data
         ));
     }
 

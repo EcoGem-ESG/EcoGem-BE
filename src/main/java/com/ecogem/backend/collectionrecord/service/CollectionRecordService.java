@@ -6,8 +6,8 @@ import com.ecogem.backend.collectionrecord.dto.CollectionRecordResponseDto;
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordUpdateDto;
 import com.ecogem.backend.collectionrecord.entity.CollectionRecord;
 import com.ecogem.backend.collectionrecord.repository.CollectionRecordRepository;
-import com.ecogem.backend.companies.domain.Company;
-import com.ecogem.backend.companies.repository.CompanyRepository;
+import com.ecogem.backend.company.domain.Company;
+import com.ecogem.backend.company.repository.CompanyRepository;
 import com.ecogem.backend.contract.entity.Contract;
 import com.ecogem.backend.contract.repository.ContractRepository;
 import com.ecogem.backend.store.domain.Store;
@@ -81,6 +81,7 @@ public class CollectionRecordService {
                 })
                 .toList();
     }
+
     /**
      * 2) 수거기록 등록
      */

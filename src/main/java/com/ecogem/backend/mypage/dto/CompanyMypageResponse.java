@@ -1,6 +1,6 @@
 package com.ecogem.backend.mypage.dto;
 
-import com.ecogem.backend.companies.domain.Company;
+import com.ecogem.backend.company.domain.Company;
 import lombok.Getter;
 
 import java.util.List;
