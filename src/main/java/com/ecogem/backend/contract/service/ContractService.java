@@ -1,8 +1,8 @@
 package com.ecogem.backend.contract.service;
 
 import com.ecogem.backend.auth.domain.Role;
-import com.ecogem.backend.companies.domain.Company;
-import com.ecogem.backend.companies.repository.CompanyRepository;
+import com.ecogem.backend.company.domain.Company;
+import com.ecogem.backend.company.repository.CompanyRepository;
 import com.ecogem.backend.contract.dto.AddContractedStoreRequestDto;
 import com.ecogem.backend.contract.dto.ContractedStoreResponseDto;
 import com.ecogem.backend.contract.entity.Contract;

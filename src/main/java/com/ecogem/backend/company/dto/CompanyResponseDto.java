@@ -1,4 +1,4 @@
-package com.ecogem.backend.companies.dto;
+package com.ecogem.backend.company.dto;
 
 
 import lombok.AllArgsConstructor;

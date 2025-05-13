@@ -1,10 +1,10 @@
 package com.ecogem.backend.post.service;
 
+import com.ecogem.backend.auth.repositorty.UserRepository;
 import com.ecogem.backend.auth.security.CustomUserDetails;
-import com.ecogem.backend.companies.domain.Company;
-import com.ecogem.backend.companies.repository.CompanyRepository;
+import com.ecogem.backend.company.domain.Company;
+import com.ecogem.backend.company.repository.CompanyRepository;
 import com.ecogem.backend.post.dto.*;
-import com.ecogem.backend.post.entity.Comment;
 import com.ecogem.backend.post.entity.Post;
 import com.ecogem.backend.post.entity.PostStatus;
 import com.ecogem.backend.post.repository.CommentRepository;
@@ -27,6 +27,7 @@ public class PostService {
     private final StoreRepository   storeRepo;
     private final CommentRepository commentRepo;
     private final CompanyRepository companyRepo;
+    private final UserRepository userRepo;
 
     /** radiusKm 있을 때 회사 위치기준 필터, 없으면 전체 */
     public List<PostResponseDto> listPostsByCompany(Long userId, Integer radiusKm) {
@@ -46,6 +47,18 @@ public class PostService {
                         .createdAt(p.getCreatedAt())
                         .build()
         ).toList();
+    }
+
+    public List<PostResponseDto> listAllPosts() {
+        return postRepo.findAllOrdered().stream()
+                .map(p -> PostResponseDto.builder()
+                        .postId(p.getPostId())
+                        .storeName(p.getStoreName())
+                        .content(p.getContent())
+                        .status(p.getStatus())
+                        .createdAt(p.getCreatedAt())
+                        .build())
+                .toList();
     }
 
     /**
@@ -83,11 +96,18 @@ public class PostService {
                 else roots.add(dto);
             }
         }
+        // ③ store_id → user_id 역방향 조회
+        Long ownerUserId = userRepo.findByStoreId(post.getStore().getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No User for store_id=" + post.getStore().getId()))
+                .getId();
 
+        // ④ 최종 DTO 빌드
         return PostDetailResponseDto.builder()
                 .postId(post.getId())
                 .storeId(post.getStore().getId())
                 .storeName(post.getStore().getName())
+                .userId(ownerUserId)          // ← 여기에 채워 줌
                 .content(post.getContent())
                 .status(post.getStatus().name())
                 .createdAt(post.getCreatedAt())

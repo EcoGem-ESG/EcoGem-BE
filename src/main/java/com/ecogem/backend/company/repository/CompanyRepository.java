@@ -1,6 +1,6 @@
-package com.ecogem.backend.companies.repository;
+package com.ecogem.backend.company.repository;
 
-import com.ecogem.backend.companies.domain.Company;
+import com.ecogem.backend.company.domain.Company;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

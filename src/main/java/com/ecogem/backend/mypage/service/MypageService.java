@@ -2,8 +2,8 @@ package com.ecogem.backend.mypage.service;
 
 import com.ecogem.backend.auth.domain.Role;
 import com.ecogem.backend.auth.domain.User;
-import com.ecogem.backend.companies.domain.Company;
-import com.ecogem.backend.companies.repository.CompanyRepository;
+import com.ecogem.backend.company.domain.Company;
+import com.ecogem.backend.company.repository.CompanyRepository;
 import com.ecogem.backend.mypage.dto.CompanyMypageResponse;
 import com.ecogem.backend.mypage.dto.MypageUpdateRequest;
 import com.ecogem.backend.mypage.dto.StoreMypageResponse;

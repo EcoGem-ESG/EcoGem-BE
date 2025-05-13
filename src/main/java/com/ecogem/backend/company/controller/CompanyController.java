@@ -1,10 +1,10 @@
-package com.ecogem.backend.companies.controller;
+package com.ecogem.backend.company.controller;
 
 
 import com.ecogem.backend.auth.security.CustomUserDetails;
-import com.ecogem.backend.companies.service.CompanyService;
-import com.ecogem.backend.companies.dto.CompanyRequestDto;
-import com.ecogem.backend.companies.dto.CompanyResponseDto;
+import com.ecogem.backend.company.service.CompanyService;
+import com.ecogem.backend.company.dto.CompanyRequestDto;
+import com.ecogem.backend.company.dto.CompanyResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
