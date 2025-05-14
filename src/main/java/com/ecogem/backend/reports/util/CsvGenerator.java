@@ -20,7 +20,7 @@ public class CsvGenerator {
 
             writer.println("recordId,collectedAt,collectedBy,storeName,volumeLiter,pricePerLiter,totalPrice");
 
-      
+
             for (CollectionRecordResponseDto record : records) {
                 writer.printf("%d,%s,%s,%s,%.2f,%.2f,%.2f%n",
                         record.getRecordId(),
