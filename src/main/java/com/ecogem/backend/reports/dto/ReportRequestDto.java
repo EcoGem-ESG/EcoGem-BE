@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public class ReportRequestDto {
     private Long userId;
     private Role role;
-
+    private String storeName;
     private LocalDate startDate;
     private LocalDate endDate;
 }

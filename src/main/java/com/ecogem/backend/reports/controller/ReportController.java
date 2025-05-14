@@ -1,30 +1,20 @@
 package com.ecogem.backend.reports.controller;
 
 import com.ecogem.backend.domain.entity.Role;
+import com.ecogem.backend.reports.dto.ReportCreateResponse;
 import com.ecogem.backend.reports.dto.ReportRequestDto;
 import com.ecogem.backend.reports.service.ReportService;
-import com.ecogem.backend.reports.dto.ReportCreateResponse;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/reports")
@@ -33,35 +23,39 @@ public class ReportController {
 
     private final ReportService reportService;
 
+    /**
+     * 보고서 생성 요청 - 인증 없이 DTO에서 모든 값 직접 받음
+     */
     @PostMapping
-    public ResponseEntity<?> createReport(@RequestBody ReportRequestDto request) {
+    public ResponseEntity<ReportCreateResponse> createReport(@RequestBody ReportRequestDto request) {
         String filePath = reportService.generateReport(
                 request.getUserId(),
                 request.getRole(),
+                request.getStoreName(),
                 request.getStartDate(),
                 request.getEndDate()
         );
 
-        return ResponseEntity.status(201).body(
-                new ReportCreateResponse(true, 201, "REPORT_CREATE_SUCCESS", filePath)
-        );
+        return ResponseEntity.status(201)
+                .body(new ReportCreateResponse(true, 201, "REPORT_CREATE_SUCCESS", filePath));
     }
+
+    /**
+     * 생성된 PDF 보고서 다운로드
+     */
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadReport(@RequestParam String filename) throws IOException {
-        File file = new File("/tmp/" + filename);  // ✅ 실제 생성 위치에 맞게 수정
+        File file = new File("/tmp/" + filename);
 
         if (!file.exists()) {
             return ResponseEntity.notFound().build();
         }
 
         InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
-
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName())
                 .contentType(MediaType.APPLICATION_PDF)
                 .contentLength(file.length())
                 .body(resource);
     }
-
-
 }
