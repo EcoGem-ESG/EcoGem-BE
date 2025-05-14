@@ -1,5 +1,6 @@
 package com.ecogem.backend.reports.controller;
 
+
 import com.ecogem.backend.auth.domain.User;
 import com.ecogem.backend.reports.dto.ReportCreateResponse;
 import com.ecogem.backend.reports.dto.ReportRequestDto;
@@ -26,8 +27,13 @@ public class ReportController {
 
     private final ReportService reportService;
 
+    /**
+     * 로그인된 사용자 정보에서 userId, role, company/store name을 가져와
+     * 해당 대상의 보고서를 생성합니다.
+     */
     @PostMapping
     public ResponseEntity<ReportCreateResponse> createReport(
+
             @AuthenticationPrincipal User user,
             @RequestBody ReportRequestDto request
     ) {

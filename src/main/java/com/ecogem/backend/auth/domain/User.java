@@ -2,7 +2,7 @@ package com.ecogem.backend.auth.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import com.ecogem.backend.companies.domain.Company;
+import com.ecogem.backend.company.domain.Company;
 import com.ecogem.backend.store.domain.Store;
 
 

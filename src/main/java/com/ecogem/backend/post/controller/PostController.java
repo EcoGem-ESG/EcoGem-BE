@@ -1,9 +1,12 @@
 package com.ecogem.backend.post.controller;
 
+import com.ecogem.backend.auth.security.CustomUserDetails;
 import com.ecogem.backend.post.dto.*;
 import com.ecogem.backend.post.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,30 +22,28 @@ public class PostController {
 
     private final PostService postService;
 
-    /**
-     * 게시판에서 게시글 목록 조회
-     */
+    /** 게시판에서 게시글 목록 조회 */
     @GetMapping
     public ResponseEntity<?> getPosts(
-            @RequestParam double lat,
-            @RequestParam double lng,
-            @RequestParam(required = false) Integer radius
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @RequestParam(value = "radius", required = false) Integer radiusKm
     ) {
-        List<PostResponseDto> data;
+        Long userId = principal.getUser().getId();
+        String role = principal.getUser().getRole().name();
 
-        if (radius == null) {
-            // radius 미선택 → 전체 게시글 최신 작성순
+        List<PostResponseDto> data;
+        if ("COMPANY_WORKER".equals(role)) {
+            // 회사: radiusKm 있으면 필터, 없으면 전체
+            data = postService.listPostsByCompany(userId, radiusKm);
+        } else if ("STORE_OWNER".equals(role)) {
+            // 가게 주인: 반경 무시, 전체 최신순
             data = postService.listAllPosts();
-        } else if (radius == 5 || radius == 10) {
-            // 5km 혹은 10km 반경 필터링
-            data = postService.listPosts(lat, lng, radius);
         } else {
-            // 잘못된 radius
-            return ResponseEntity.badRequest()
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of(
                             "success", false,
-                            "code",    400,
-                            "message", "INVALID_RADIUS"
+                            "code",    403,
+                            "message", "권한이 없습니다."
                     ));
         }
 
@@ -54,91 +55,68 @@ public class PostController {
         ));
     }
 
-    /**
-     * 게시글 상세 조회
-     */
+    /** 게시글 상세 조회 */
     @GetMapping("/{postId}")
     public ResponseEntity<?> getPostDetail(@PathVariable Long postId) {
-        PostDetailResponseDto data = postService.getPostDetail(postId);
-
+        var data = postService.getPostDetail(postId);
         return ResponseEntity.ok(Map.of(
-                "success", true,
-                "code", 200,
-                "message", "POST_DETAIL_SUCCESS",
-                "data", data
+                "success", true, "code", 200,
+                "message", "POST_DETAIL_SUCCESS", "data", data
         ));
     }
 
-    /**
-     * 게시글 작성
-     */
+    /** 게시글 작성 */
     @PostMapping
     public ResponseEntity<?> createPost(
-            @RequestBody @Validated PostCreateRequestDto request
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @RequestBody @Validated PostCreateRequestDto req
     ) {
-        PostCreateResponseDto data = postService.createPost(request);
-
-        // java.net.URI 로 Location 변수 선언
+        var data = postService.createPost(req);
         URI location = URI.create("/api/posts/" + data.getPostId());
-
-        return ResponseEntity
-                .created(location)  // HTTP 201 + Location 헤더 자동 세팅
-                .body(Map.of(
-                        "success", true,
-                        "code",    201,
-                        "message", "POST_CREATE_SUCCESS",
-                        "data",    data
-                ));
+        return ResponseEntity.created(location).body(Map.of(
+                "success", true, "code", 201,
+                "message", "POST_CREATE_SUCCESS", "data", data
+        ));
     }
 
-
-    /**
-     * 게시글 상태 변경
-     */
+    /** 게시글 상태 변경 */
     @PatchMapping("/{postId}/status")
     public ResponseEntity<?> changeStatus(
+            @AuthenticationPrincipal CustomUserDetails principal,
             @PathVariable Long postId,
-            @RequestBody @Validated PostStatusUpdateRequestDto request
+            @RequestBody @Validated PostStatusUpdateRequestDto req
     ) {
-        PostStatusUpdateResponseDto data =
-                postService.updateStatus(postId, request);
-
+        var data = postService.updateStatus(postId, req);
         return ResponseEntity.ok(Map.of(
-                "success", true,
-                "code",    200,
-                "message", "POST_STATUS_UPDATED",
-                "data",    data
+                "success", true, "code", 200,
+                "message", "POST_STATUS_UPDATED", "data", data
         ));
     }
 
-    /**
-     * 게시글 수정
-     */
+    /** 게시글 수정 */
     @PatchMapping("/{postId}")
     public ResponseEntity<?> updatePost(
+            @AuthenticationPrincipal CustomUserDetails principal,
             @PathVariable Long postId,
-            @RequestBody @Validated PostUpdateRequestDto request
+            @RequestBody @Validated PostUpdateRequestDto req
     ) {
-        PostUpdateResponseDto data = postService.updatePost(postId, request);
-
+        var data = postService.updatePost(postId, req);
         return ResponseEntity.ok(Map.of(
-                "success", true,
-                "code",    200,
-                "message", "POST_UPDATE_SUCCESS",
-                "data",    data
+                "success", true, "code", 200,
+                "message", "POST_UPDATE_SUCCESS", "data", data
         ));
     }
 
-    /**
-     * 게시글 삭제
-     */
+    /** 게시글 삭제 */
     @DeleteMapping("/{postId}")
-    public ResponseEntity<PostDeleteResponseDto> deletePost(
-            @PathVariable Long postId,
-            @RequestParam Long storeId
+    public ResponseEntity<?> deletePost(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable Long postId
     ) {
-        PostDeleteResponseDto response = postService.deletePost(postId, storeId);
-        return ResponseEntity.ok(response);
+        var data = postService.deletePost(postId);
+        return ResponseEntity.ok(Map.of(
+                "success", true, "code", 200,
+                "message", "POST_DELETE_SUCCESS", "data", data
+        ));
     }
-
 }

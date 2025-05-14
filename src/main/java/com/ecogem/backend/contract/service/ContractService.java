@@ -1,14 +1,14 @@
 package com.ecogem.backend.contract.service;
 
+import com.ecogem.backend.auth.domain.Role;
+import com.ecogem.backend.company.domain.Company;
+import com.ecogem.backend.company.repository.CompanyRepository;
 import com.ecogem.backend.contract.dto.AddContractedStoreRequestDto;
 import com.ecogem.backend.contract.dto.ContractedStoreResponseDto;
-import com.ecogem.backend.domain.entity.Company;
-import com.ecogem.backend.domain.entity.Contract;
-import com.ecogem.backend.domain.entity.Role;
-import com.ecogem.backend.domain.entity.Store;
-import com.ecogem.backend.domain.repository.CompanyRepository;
-import com.ecogem.backend.domain.repository.ContractRepository;
-import com.ecogem.backend.domain.repository.StoreRepository;
+import com.ecogem.backend.contract.entity.Contract;
+import com.ecogem.backend.contract.repository.ContractRepository;
+import com.ecogem.backend.store.domain.Store;
+import com.ecogem.backend.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,18 +23,21 @@ public class ContractService {
     private final StoreRepository storeRepo;
     private final CompanyRepository companyRepo;
 
-    public List<ContractedStoreResponseDto> getContractedStore(Long userId, Role role, String search) {
-        if(role != Role.COMPANY_WORKER) {
+    @Transactional(readOnly = true)
+    public List<ContractedStoreResponseDto> getContractedStore(
+            Long userId, Role role, String search
+    ) {
+        if (role != Role.COMPANY_WORKER) {
             throw new IllegalArgumentException("Only COMPANY_WORKER can view contracted stores");
         }
 
-        List<Contract> contracts;
-        if (search != null && !search.isBlank()) {
-            contracts = contractRepo
-                    .findByCompany_UserIdAndStore_NameContainingIgnoreCase(userId, search);
-        } else {
-            contracts = contractRepo.findByCompany_UserId(userId);
-        }
+        Company company = companyRepo.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
+        Long companyId = company.getId();
+
+        List<Contract> contracts = (search != null && !search.isBlank())
+                ? contractRepo.findByCompany_IdAndStore_NameContainingIgnoreCase(companyId, search)
+                : contractRepo.findByCompany_Id(companyId);
 
         return contracts.stream()
                 .map(c -> ContractedStoreResponseDto.builder()
@@ -44,44 +47,31 @@ public class ContractService {
                         .storePhone(c.getStore().getStorePhone())
                         .ownerPhone(c.getStore().getOwnerPhone())
                         .build()
-                )
-                .toList();
+                ).toList();
     }
 
-    /**
-     * 계약된 가게 추가
-     */
     @Transactional
     public void addContractedStore(
-            Long userId,
-            Role role,
-            AddContractedStoreRequestDto dto
+            Long userId, Role role, AddContractedStoreRequestDto dto
     ) {
-        // 1) 권한 체크: 오직 COMPANY_WORKER
         if (role != Role.COMPANY_WORKER) {
             throw new IllegalArgumentException("Only COMPANY_WORKER can add contracted stores");
         }
 
-        // 2) 회사 조회
         Company company = companyRepo.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
 
-        // 3) 가게 조회 or 생성
         Store store = storeRepo.findByName(dto.getStoreName())
-                .orElseGet(() -> {
-                    // 신규 가게: userId 없이 입력된 정보로만 생성
-                    return storeRepo.save(Store.builder()
-                            .name(dto.getStoreName())
-                            .address(dto.getAddress())
-                            .storePhone(dto.getStorePhone())
-                            .ownerPhone(dto.getOwnerPhone())
-                            .build());
-                });
+                .orElseGet(() -> storeRepo.save(
+                        Store.builder()
+                                .name(dto.getStoreName())
+                                .address(dto.getAddress())
+                                .storePhone(dto.getStorePhone())
+                                .ownerPhone(dto.getOwnerPhone())
+                                .build()
+                ));
 
-        // 4) 계약 테이블에 없으면 추가
-        boolean exists = contractRepo.existsByCompanyIdAndStoreId(
-                company.getId(), store.getId());
-        if (!exists) {
+        if (!contractRepo.existsByCompanyIdAndStoreId(company.getId(), store.getId())) {
             contractRepo.save(Contract.builder()
                     .company(company)
                     .store(store)
@@ -89,26 +79,25 @@ public class ContractService {
         }
     }
 
-
-    /**
-     * 계약된 가게 삭제
-     */
     @Transactional
-    public void deleteContractedStore(Long userId, Role role, Long storeId) {
-        // 1) 권한 체크
+    public void deleteContractedStore(
+            Long userId, Role role, Long storeId
+    ) {
         if (role != Role.COMPANY_WORKER) {
             throw new IllegalArgumentException("Only COMPANY_WORKER can delete contracts");
         }
 
-        // 2) 계약 존재 여부 확인
-        boolean exists = contractRepo.existsByCompanyIdAndStoreId(userId, storeId);
+        Company company = companyRepo.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
+        Long companyId = company.getId();
+
+        boolean exists = contractRepo.existsByCompanyIdAndStoreId(companyId, storeId);
         if (!exists) {
             throw new IllegalArgumentException(
-                    "No contract found for companyUserId=" + userId + ", storeId=" + storeId);
+                    "No contract found for companyId=" + companyId + ", storeId=" + storeId
+            );
         }
 
-        // 3) 계약 삭제
-        contractRepo.deleteByCompanyIdAndStoreId(userId, storeId);
+        contractRepo.deleteByCompanyIdAndStoreId(companyId, storeId);
     }
-
 }

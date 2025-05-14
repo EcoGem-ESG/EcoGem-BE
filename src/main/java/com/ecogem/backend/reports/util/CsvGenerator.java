@@ -4,9 +4,13 @@ import com.ecogem.backend.collectionrecord.dto.CollectionRecordResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @Component
@@ -31,14 +35,15 @@ public class CsvGenerator {
                         record.getPricePerLiter(),
                         record.getTotalPrice()
                 );
+
             }
 
-            log.info("CSV 파일 생성 완료: {}", filePath);
+            log.info("CSV 파일 생성 완료: {}", tmpFile);
+            return tmpFile.toString();
+
         } catch (IOException e) {
             log.error("CSV 생성 실패", e);
-            throw new RuntimeException("CSV 파일 생성 실패");
+            throw new RuntimeException("CSV 파일 생성 실패", e);
         }
-
-        return filePath;
     }
 }

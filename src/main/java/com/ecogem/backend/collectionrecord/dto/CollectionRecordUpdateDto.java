@@ -29,4 +29,3 @@ public class CollectionRecordUpdateDto {
     private String collectedBy;
 
 }
-

@@ -1,5 +1,7 @@
-package com.ecogem.backend.domain.entity;
+package com.ecogem.backend.contract.entity;
 
+import com.ecogem.backend.company.domain.Company;
+import com.ecogem.backend.store.domain.Store;
 import jakarta.persistence.*;
 import lombok.*;
 

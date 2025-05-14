@@ -19,13 +19,6 @@ public class CommentCreateRequestDto {
     @JsonProperty("parent_id")
     private Long parentId;
 
-    /**
-     * 테스트용으로 직접 받는 사용자 ID
-     */
-    @JsonProperty("user_id")
-    @NotNull
-    private Long userId;
-
     @JsonProperty("content")
     @NotBlank
     private String content;
