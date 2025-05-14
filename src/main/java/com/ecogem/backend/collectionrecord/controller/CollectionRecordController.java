@@ -1,21 +1,25 @@
 package com.ecogem.backend.collectionrecord.controller;
 
+import com.ecogem.backend.auth.domain.Role;
+import com.ecogem.backend.auth.security.CustomUserDetails;
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordRequestDto;
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordResponseDto;
 import com.ecogem.backend.collectionrecord.dto.CollectionRecordUpdateDto;
 import com.ecogem.backend.collectionrecord.service.CollectionRecordService;
-import com.ecogem.backend.domain.entity.Role;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/collection-records")
-@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })   // Live Server 주소
+@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })
 public class CollectionRecordController {
 
     private final CollectionRecordService service;
@@ -26,41 +30,35 @@ public class CollectionRecordController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getCollectionRecords(
+            @AuthenticationPrincipal CustomUserDetails principal,
             @RequestParam(value = "start_date", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-
-            @RequestParam(value = "end_date", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-
-            // ▶ 아직 Security 연동 전 테스트용 파라미터
-            @RequestParam("user_id") Long userId,
-            @RequestParam("role") String roleStr
+            @RequestParam(value = "end_date",   required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate   endDate
     ) {
-        Role role = Role.valueOf(roleStr.toUpperCase());
+        Long userId = principal.getUser().getId();
+        Role role   = principal.getUser().getRole();
 
         List<CollectionRecordResponseDto> records =
                 service.getRecordsForUser(userId, role, startDate, endDate);
 
         Map<String, Object> resp = new HashMap<>();
         resp.put("success", true);
-        resp.put("code", 200);
+        resp.put("code",    200);
         resp.put("message", "COLLECTION_RECORD_LIST");
         resp.put("records", records);
 
         return ResponseEntity.ok(resp);
     }
 
-
-    /**
-     * 수거기록 등록
-     */
     @PostMapping
     public ResponseEntity<Map<String, Object>> registerCollectionRecord(
-            @RequestParam("user_id") Long userId,
-            @RequestParam("role")    String roleStr,
+            @AuthenticationPrincipal CustomUserDetails principal,
             @RequestBody CollectionRecordRequestDto dto
     ) {
-        Role role = Role.valueOf(roleStr.toUpperCase());
+        Long userId = principal.getUser().getId();
+        Role role   = principal.getUser().getRole();
+
         service.registerRecord(userId, role, dto);
 
         Map<String,Object> resp = new HashMap<>();
@@ -71,15 +69,15 @@ public class CollectionRecordController {
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
-
     @PatchMapping("/{record_id}")
     public ResponseEntity<Map<String, Object>> updateCollectionRecord(
-            @PathVariable("record_id") Long recordId,
-            @RequestParam("user_id") Long userId,
-            @RequestParam("role")    String roleStr,
-            @RequestBody CollectionRecordUpdateDto dto
+            @AuthenticationPrincipal    CustomUserDetails principal,
+            @PathVariable("record_id")  Long    recordId,
+            @RequestBody                CollectionRecordUpdateDto dto
     ) {
-        Role role = Role.valueOf(roleStr.toUpperCase());
+        Long userId = principal.getUser().getId();
+        Role role   = principal.getUser().getRole();
+
         service.updateRecord(userId, role, recordId, dto);
 
         Map<String, Object> resp = new HashMap<>();
@@ -90,12 +88,13 @@ public class CollectionRecordController {
     }
 
     @DeleteMapping("/{record_id}")
-    public ResponseEntity<Map<String,Object>> deleteCollectionRecord(
-            @PathVariable("record_id") Long recordId,
-            @RequestParam("user_id") Long userId,
-            @RequestParam("role")    String roleStr
+    public ResponseEntity<Map<String, Object>> deleteCollectionRecord(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable("record_id") Long recordId
     ) {
-        Role role = Role.valueOf(roleStr.toUpperCase());
+        Long userId = principal.getUser().getId();
+        Role role   = principal.getUser().getRole();
+
         service.deleteRecord(userId, role, recordId);
 
         Map<String,Object> resp = new HashMap<>();
@@ -104,5 +103,4 @@ public class CollectionRecordController {
         resp.put("message", "RECORD_DELETE_SUCCESS");
         return ResponseEntity.ok(resp);
     }
-
 }

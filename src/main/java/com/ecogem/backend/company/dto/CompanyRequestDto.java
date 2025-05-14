@@ -1,4 +1,4 @@
-package com.ecogem.backend.companies.dto;
+package com.ecogem.backend.company.dto;
 
 
 import lombok.Getter;
@@ -11,4 +11,6 @@ public class CompanyRequestDto {
     private String managerName;
     private String companyPhone;
     private List<String> wasteTypes;
+    private Double latitude;
+    private Double longitude;
 }

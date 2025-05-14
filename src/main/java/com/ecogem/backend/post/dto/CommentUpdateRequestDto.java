@@ -12,11 +12,6 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommentUpdateRequestDto {
 
-    /** 수정 요청하는 사용자 ID (작성자 체크용) */
-    @JsonProperty("user_id")
-    @NotNull
-    private Long   userId;
-
     @JsonProperty("content")
     @NotBlank
     private String content;

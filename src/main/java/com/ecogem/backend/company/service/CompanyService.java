@@ -1,12 +1,11 @@
-package com.ecogem.backend.companies.service;
+package com.ecogem.backend.company.service;
 
 import com.ecogem.backend.auth.domain.Status;
 import com.ecogem.backend.auth.domain.User;
 import com.ecogem.backend.auth.repositorty.UserRepository;
-import com.ecogem.backend.companies.domain.Company;
-import com.ecogem.backend.companies.dto.CompanyRequestDto;
-import com.ecogem.backend.companies.repository.CompanyRepository;
-import com.ecogem.companies.repository.*;
+import com.ecogem.backend.company.domain.Company;
+import com.ecogem.backend.company.dto.CompanyRequestDto;
+import com.ecogem.backend.company.repository.CompanyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +24,8 @@ public class CompanyService {
                 .managerName(request.getManagerName())
                 .companyPhone(request.getCompanyPhone())
                 .wasteTypes(request.getWasteTypes())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
                 .build();
         companyRepository.save(company);
 

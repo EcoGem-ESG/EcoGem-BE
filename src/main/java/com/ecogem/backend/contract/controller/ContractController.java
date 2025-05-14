@@ -1,12 +1,14 @@
 package com.ecogem.backend.contract.controller;
 
+import com.ecogem.backend.auth.domain.Role;
+import com.ecogem.backend.auth.security.CustomUserDetails;
 import com.ecogem.backend.contract.dto.AddContractedStoreRequestDto;
 import com.ecogem.backend.contract.dto.ContractedStoreResponseDto;
 import com.ecogem.backend.contract.service.ContractService;
-import com.ecogem.backend.domain.entity.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -26,19 +28,20 @@ public class ContractController {
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getContractedStores(
-        @RequestParam("user_id") Long userId,
-        @RequestParam("role") String roleStr,
-        @RequestParam(value = "search", required = false) String search
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @RequestParam(value = "search", required = false) String search
     ) {
-        Role role = Role.valueOf(roleStr.toUpperCase());
-        List<ContractedStoreResponseDto> data = service.getContractedStore(userId, role, search);
+        Long userId = principal.getUser().getId();
+        var role    = principal.getUser().getRole();
 
-        Map<String, Object> resp = new HashMap<>();
+        List<ContractedStoreResponseDto> data =
+                service.getContractedStore(userId, role, search);
+
+        Map<String,Object> resp = new HashMap<>();
         resp.put("success", true);
-        resp.put("code", 200);
+        resp.put("code",    200);
         resp.put("message", "CONTRACTED_STORE_LIST");
-        resp.put("data", data);
-
+        resp.put("data",    data);
         return ResponseEntity.ok(resp);
     }
 
@@ -47,21 +50,19 @@ public class ContractController {
      */
     @PostMapping
     public ResponseEntity<Map<String, Object>> addStore(
-            @RequestParam("user_id") Long userId,
-            @RequestParam("role") String roleStr,
+            @AuthenticationPrincipal CustomUserDetails principal,
             @RequestBody AddContractedStoreRequestDto dto
     ) {
-        Role role = Role.valueOf(roleStr.toUpperCase());
+        Long userId = principal.getUser().getId();
+        var role    = principal.getUser().getRole();
+
         service.addContractedStore(userId, role, dto);
 
-        Map<String, Object> resp = new HashMap<>();
+        Map<String,Object> resp = new HashMap<>();
         resp.put("success", true);
-        resp.put("code", 201);
+        resp.put("code",    201);
         resp.put("message", "CONTRACTED_STORE_REGISTERED");
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(resp);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
     /**
@@ -69,23 +70,18 @@ public class ContractController {
      */
     @DeleteMapping("/{store_id}")
     public ResponseEntity<Map<String,Object>> deleteContractedStore(
-            @PathVariable("store_id") Long storeId,
-            @RequestParam("user_id") Long userId,
-            @RequestParam("role") String roleStr
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable("store_id") Long storeId
     ) {
-        // Role 변환
-        Role role = Role.valueOf(roleStr.toUpperCase());
+        Long userId = principal.getUser().getId();
+        var role    = principal.getUser().getRole();
 
-        // 서비스 호출
         service.deleteContractedStore(userId, role, storeId);
 
-        // 응답 생성
-        Map<String, Object> resp = new HashMap<>();
+        Map<String,Object> resp = new HashMap<>();
         resp.put("success", true);
-        resp.put("code", 200);
+        resp.put("code",    200);
         resp.put("message", "CONTRACTED_STORE_DELETE_SUCCESS");
-
         return ResponseEntity.ok(resp);
-
     }
 }

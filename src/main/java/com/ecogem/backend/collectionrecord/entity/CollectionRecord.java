@@ -1,7 +1,8 @@
 package com.ecogem.backend.collectionrecord.entity;
 
-import com.ecogem.backend.domain.entity.Company;
-import com.ecogem.backend.domain.entity.Store;
+
+import com.ecogem.backend.company.domain.Company;
+import com.ecogem.backend.store.domain.Store;
 import jakarta.persistence.*;
 import lombok.*;
 

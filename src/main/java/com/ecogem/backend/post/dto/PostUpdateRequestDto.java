@@ -11,10 +11,6 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostUpdateRequestDto {
 
-    @JsonProperty("store_id")
-    @NotNull
-    private Long   storeId;
-
     @JsonProperty("content")
     @NotBlank
     private String content;

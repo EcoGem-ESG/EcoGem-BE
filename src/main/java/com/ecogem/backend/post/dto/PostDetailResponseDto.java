@@ -16,6 +16,9 @@ public class PostDetailResponseDto {
     @JsonProperty("post_id")
     private Long postId;
 
+    @JsonProperty("user_id")
+    private Long userId;
+
     @JsonProperty("store_id")
     private Long storeId;
 
