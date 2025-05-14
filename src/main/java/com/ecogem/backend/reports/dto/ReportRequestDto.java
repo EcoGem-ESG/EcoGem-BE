@@ -8,3 +8,4 @@ import java.time.LocalDate;
 public class ReportRequestDto {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 }
+

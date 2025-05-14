@@ -26,23 +26,25 @@ public class ReportService {
     private final CsvGenerator csvGenerator;
     public String generateReport(Long userId, Role role, String storeName, LocalDate start, LocalDate end) {
 
+        // 1. List all collection
         List<CollectionRecordResponseDto> allRecords =
                 collectionRecordService.getRecordsForUser(userId, role, start, end);
 
+        // 2. By the name of stores
 
         List<CollectionRecordResponseDto> filtered = allRecords.stream()
                 .filter(r -> storeName.equalsIgnoreCase(r.getStoreName()))
                 .toList();
 
         if (filtered.isEmpty()) {
-            throw new RuntimeException("수거 기록이 존재하지 않습니다.");
+            throw new RuntimeException("No collection Record.");
         }
 
 
         String filename = "report_" + System.currentTimeMillis() + ".csv";
         String csvPath = csvGenerator.generateCsv(filtered, filename);
 
-        // 4. 파이썬 실행 (CSV + storeName + 날짜)
+        // 4. python run (CSV + storeName + Date)
         return runPythonScript(csvPath, storeName, start.toString(), end.toString());
     }
 
@@ -56,22 +58,14 @@ public class ReportService {
             Process process = builder.start();
 
 
-            // Windows: "py -3", mac/linux: "python3"
-            ProcessBuilder pb = new ProcessBuilder(
-                    "py", "-3",
-                    script,
-                    csvPath,
-                    storeName,
-                    startDate,
-                    endDate
-            );
-            pb.directory(new File(cwd));
-            Process p = pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String outputPath = reader.readLine();  // PDF route
 
-            // stdout
-            BufferedReader out = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String stdout = out.readLine();
-            log.info("Python STDOUT: {}", stdout);
+            int exitCode = process.waitFor();
+            if (exitCode != 0 || outputPath == null || outputPath.isEmpty()) {
+                throw new RuntimeException("Python report failed");
+            }
+
 
             // stderr
             BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
@@ -81,7 +75,7 @@ public class ReportService {
             }
             return outputPath.trim();
         } catch (Exception e) {
-            throw new RuntimeException("Python 스크립트 실행 중 오류 발생", e);
+            throw new RuntimeException("Python Script Error", e);
 
         }
     }
