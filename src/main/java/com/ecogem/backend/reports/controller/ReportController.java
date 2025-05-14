@@ -38,7 +38,7 @@ public class ReportController {
     }
 
     /**
-     * 생성된 PDF 보고서 다운로드
+     * PDF download
      */
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadReport(@RequestParam String filename) throws IOException {

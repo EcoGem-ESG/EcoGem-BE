@@ -23,24 +23,24 @@ public class ReportService {
     private final CsvGenerator csvGenerator;
 
     public String generateReport(Long userId, Role role, String storeName, LocalDate start, LocalDate end) {
-        // 1. 전체 수거기록 조회
+        // 1. List all collection
         List<CollectionRecordResponseDto> allRecords =
                 collectionRecordService.getRecordsForUser(userId, role, start, end);
 
-        // 2. 가게명으로 필터링
+        // 2. By the name of stores
         List<CollectionRecordResponseDto> filtered = allRecords.stream()
                 .filter(r -> storeName.equalsIgnoreCase(r.getStoreName()))
                 .toList();
 
         if (filtered.isEmpty()) {
-            throw new RuntimeException("수거 기록이 존재하지 않습니다.");
+            throw new RuntimeException("No collection Record.");
         }
 
 
         String filename = "report_" + System.currentTimeMillis() + ".csv";
         String csvPath = csvGenerator.generateCsv(filtered, filename);
 
-        // 4. 파이썬 실행 (CSV + storeName + 날짜)
+        // 4. python run (CSV + storeName + Date)
         return runPythonScript(csvPath, storeName, start.toString(), end.toString());
     }
 
@@ -54,16 +54,16 @@ public class ReportService {
             Process process = builder.start();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String outputPath = reader.readLine();  // PDF 경로
+            String outputPath = reader.readLine();  // PDF route
 
             int exitCode = process.waitFor();
             if (exitCode != 0 || outputPath == null || outputPath.isEmpty()) {
-                throw new RuntimeException("Python 보고서 생성 실패");
+                throw new RuntimeException("Python report failed");
             }
 
             return outputPath.trim();
         } catch (Exception e) {
-            throw new RuntimeException("Python 스크립트 실행 중 오류 발생", e);
+            throw new RuntimeException("Python Script Error", e);
         }
     }
 }
