@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.time.LocalDate;
@@ -23,66 +24,37 @@ public class ReportService {
 
     private final CollectionRecordService collectionRecordService;
     private final CsvGenerator csvGenerator;
+    public String generateReport(Long userId, Role role, String storeName, LocalDate start, LocalDate end) {
 
-    /**
-     * 사용자·역할·기간·가게명을 받아서 CSV → PDF 보고서를 생성하고,
-     * Python 스크립트가 출력한 PDF 경로를 리턴합니다.
-     */
-    public String generateReport(
-            Long userId,
-            Role role,
-            String storeName,
-            LocalDate start,
-            LocalDate end
-    ) {
-        // 1) 전체 수거기록 조회
-        List<CollectionRecordResponseDto> all = collectionRecordService
-                .getRecordsForUser(userId, role, start, end);
+        List<CollectionRecordResponseDto> allRecords =
+                collectionRecordService.getRecordsForUser(userId, role, start, end);
 
-        // 2) 특정 가게만 필터링
-        List<CollectionRecordResponseDto> filtered = all.stream()
+
+        List<CollectionRecordResponseDto> filtered = allRecords.stream()
                 .filter(r -> storeName.equalsIgnoreCase(r.getStoreName()))
-                .collect(Collectors.toList());
+                .toList();
 
-        // 3) CSV 생성 (임시파일)
-        String csvPath = csvGenerator.generateCsv(filtered);
-        log.info("CSV generated: {}", csvPath);
-
-        // 4) Python 스크립트 실행 (CSV → PDF)
-        String pdfPath = runPythonScript(csvPath,
-                storeName,
-                start.toString(),
-                end.toString());
-
-        // 5) 임시 CSV 삭제(Optional)
-        try {
-            Files.deleteIfExists(new File(csvPath).toPath());
-            log.info("Temporary CSV deleted: {}", csvPath);
-        } catch (Exception e) {
-            log.warn("Failed to delete temp CSV: {}", csvPath, e);
+        if (filtered.isEmpty()) {
+            throw new RuntimeException("수거 기록이 존재하지 않습니다.");
         }
 
-        return pdfPath;
+
+        String filename = "report_" + System.currentTimeMillis() + ".csv";
+        String csvPath = csvGenerator.generateCsv(filtered, filename);
+
+        // 4. 파이썬 실행 (CSV + storeName + 날짜)
+        return runPythonScript(csvPath, storeName, start.toString(), end.toString());
     }
 
-    /**
-     * @param csvPath     생성된 CSV 파일 경로
-     * @param storeName   보고서 대상 가게명 (파이썬 인자)
-     * @param startDate   파이썬 인자로 넘길 시작일자 (YYYY-MM-DD)
-     * @param endDate     파이썬 인자로 넘길 종료일자 (YYYY-MM-DD)
-     */
-    private String runPythonScript(
-            String csvPath,
-            String storeName,
-            String startDate,
-            String endDate
-    ) {
+    private String runPythonScript(String csvPath, String storeName, String startDate, String endDate) {
         try {
-            String cwd = System.getProperty("user.dir");
-            log.info("runPythonScript - cwd: {}", cwd);
 
-            String script = cwd + File.separator + "report_generator.py";
-            log.info("runPythonScript - script: {}", script);
+            ProcessBuilder builder = new ProcessBuilder(
+                    "python3", "report_generator.py", csvPath, storeName, startDate, endDate
+            );
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+
 
             // Windows: "py -3", mac/linux: "python3"
             ProcessBuilder pb = new ProcessBuilder(
@@ -107,18 +79,10 @@ public class ReportService {
             while ((line = err.readLine()) != null) {
                 log.error("Python STDERR: {}", line);
             }
+            return outputPath.trim();
+        } catch (Exception e) {
+            throw new RuntimeException("Python 스크립트 실행 중 오류 발생", e);
 
-            int code = p.waitFor();
-            log.info("Python exit code: {}", code);
-
-            if (code != 0 || stdout == null || stdout.isBlank()) {
-                throw new RuntimeException("Python report generation failed (exit=" + code + ")");
-            }
-            return stdout.trim();
-
-        } catch (Exception ex) {
-            log.error("runPythonScript exception", ex);
-            throw new RuntimeException("Error running Python script", ex);
         }
     }
 }

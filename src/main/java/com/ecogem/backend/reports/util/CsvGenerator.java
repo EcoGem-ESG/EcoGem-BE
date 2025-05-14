@@ -17,30 +17,25 @@ import java.util.List;
 @Slf4j
 public class CsvGenerator {
 
-    public String generateCsv(List<CollectionRecordResponseDto> records) {
-        try {
-            // 1) 시스템 임시 디렉토리, 고유한 임시파일 생성
-            Path tmpFile = Files.createTempFile(
-                    Paths.get(System.getProperty("java.io.tmpdir")),
-                    "ecogem_report_",
-                    ".csv"
-            );
+    public String generateCsv(List<CollectionRecordResponseDto> records, String filename) {
+        String filePath = "/tmp/" + filename;
 
-            // 2) try-with-resources 로 자동 close
-            try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(tmpFile))) {
-                writer.println("recordId,collectedAt,collectedBy,storeName,volumeLiter,pricePerLiter,totalPrice");
-                for (var r : records) {
-                    writer.printf(
-                            "%d,%s,%s,%s,%.2f,%.2f,%.2f%n",
-                            r.getRecordId(),
-                            r.getCollectedAt(),
-                            r.getCollectedBy(),
-                            r.getStoreName(),
-                            r.getVolumeLiter(),
-                            r.getPricePerLiter(),
-                            r.getTotalPrice()
-                    );
-                }
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
+
+            writer.println("recordId,collectedAt,collectedBy,storeName,volumeLiter,pricePerLiter,totalPrice");
+
+
+            for (CollectionRecordResponseDto record : records) {
+                writer.printf("%d,%s,%s,%s,%.2f,%.2f,%.2f%n",
+                        record.getRecordId(),
+                        record.getCollectedAt(),
+                        record.getCollectedBy(),
+                        record.getStoreName(),
+                        record.getVolumeLiter(),
+                        record.getPricePerLiter(),
+                        record.getTotalPrice()
+                );
+
             }
 
             log.info("CSV 파일 생성 완료: {}", tmpFile);

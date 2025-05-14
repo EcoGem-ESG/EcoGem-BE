@@ -1,10 +1,12 @@
 package com.ecogem.backend.reports.controller;
 
-import com.ecogem.backend.auth.security.CustomUserDetails;
-import com.ecogem.backend.auth.domain.Role;
-import com.ecogem.backend.reports.dto.ReportRequestDto;
+
+import com.ecogem.backend.auth.domain.User;
 import com.ecogem.backend.reports.dto.ReportCreateResponse;
+import com.ecogem.backend.reports.dto.ReportRequestDto;
 import com.ecogem.backend.reports.service.ReportService;
+import com.ecogem.backend.domain.entity.Role; //  domain.entity.Role
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -31,45 +33,35 @@ public class ReportController {
      */
     @PostMapping
     public ResponseEntity<ReportCreateResponse> createReport(
-            @AuthenticationPrincipal CustomUserDetails principal,
+
+            @AuthenticationPrincipal User user,
             @RequestBody ReportRequestDto request
     ) {
-        // 1) 로그인 사용자 정보
-        Long userId = principal.getUser().getId();
-        Role role = principal.getUser().getRole();
-        String targetName;
+        // 🔁 auth.domain.Role → domain.entity.Role 변환
+        Role role = Role.valueOf(user.getRole().name());
 
-        if (role == Role.COMPANY_WORKER) {
-            targetName = principal.getUser().getCompany().getName();
-        } else {
-            targetName = principal.getUser().getStore().getName();
-        }
+        // 🔍 회사 or 가게 이름 설정
+        String storeName = (role == Role.COMPANY_WORKER)
+                ? user.getCompany().getName()
+                : user.getStore().getName();
 
-        // 2) 보고서 생성
+        // 📝 보고서 생성
         String filePath = reportService.generateReport(
-                userId,
+                user.getId(),
                 role,
-                targetName,
+                storeName,
                 request.getStartDate(),
                 request.getEndDate()
         );
 
         return ResponseEntity.status(201)
-                .body(new ReportCreateResponse(
-                        true,
-                        201,
-                        "REPORT_CREATE_SUCCESS",
-                        filePath
-                ));
+                .body(new ReportCreateResponse(true, 201, "REPORT_CREATE_SUCCESS", filePath));
     }
 
-    /**
-     * 생성된 PDF를 다운로드합니다.
-     */
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadReport(@RequestParam String filename) throws IOException {
-        // 실제 저장 디렉토리에 맞춰 경로 수정 가능
-        File file = new File("src/main/resources/reports/" + filename);
+        File file = new File("/tmp/" + filename);  // 보고서 파일 저장 경로
+
         if (!file.exists()) {
             return ResponseEntity.notFound().build();
         }
