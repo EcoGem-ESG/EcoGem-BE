@@ -23,9 +23,6 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    /**
-     * 보고서 생성 요청 - 인증 없이 DTO에서 모든 값 직접 받음
-     */
     @PostMapping
     public ResponseEntity<ReportCreateResponse> createReport(@RequestBody ReportRequestDto request) {
         String filePath = reportService.generateReport(

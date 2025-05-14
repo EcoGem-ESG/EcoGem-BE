@@ -17,7 +17,7 @@ public class CsvGenerator {
         String filePath = "/tmp/" + filename;
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
-            // 1. 헤더
+
             writer.println("recordId,collectedAt,collectedBy,storeName,volumeLiter,pricePerLiter,totalPrice");
 
             // 2. 데이터

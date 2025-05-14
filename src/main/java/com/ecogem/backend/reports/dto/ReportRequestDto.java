@@ -7,6 +7,7 @@ import java.time.LocalDate;
 
 @Getter
 public class ReportRequestDto {
+
     private Long userId;
     private Role role;
     private String storeName;

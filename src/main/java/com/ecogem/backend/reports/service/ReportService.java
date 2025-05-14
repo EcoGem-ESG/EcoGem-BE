@@ -36,7 +36,7 @@ public class ReportService {
             throw new RuntimeException("수거 기록이 존재하지 않습니다.");
         }
 
-        // 3. CSV 생성
+
         String filename = "report_" + System.currentTimeMillis() + ".csv";
         String csvPath = csvGenerator.generateCsv(filtered, filename);
 
