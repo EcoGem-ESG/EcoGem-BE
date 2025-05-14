@@ -37,9 +37,7 @@ public class ReportController {
                 .body(new ReportCreateResponse(true, 201, "REPORT_CREATE_SUCCESS", filePath));
     }
 
-    /**
-     * 생성된 PDF 보고서 다운로드
-     */
+
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadReport(@RequestParam String filename) throws IOException {
         File file = new File("/tmp/" + filename);

@@ -23,11 +23,11 @@ public class ReportService {
     private final CsvGenerator csvGenerator;
 
     public String generateReport(Long userId, Role role, String storeName, LocalDate start, LocalDate end) {
-        // 1. 전체 수거기록 조회
+
         List<CollectionRecordResponseDto> allRecords =
                 collectionRecordService.getRecordsForUser(userId, role, start, end);
 
-        // 2. 가게명으로 필터링
+
         List<CollectionRecordResponseDto> filtered = allRecords.stream()
                 .filter(r -> storeName.equalsIgnoreCase(r.getStoreName()))
                 .toList();
