@@ -24,25 +24,39 @@ public class ReportService {
         List<CollectionRecordResponseDto> records =
                 collectionRecordService.getRecordsForUser(userId, role, start, end);
 
+        if (records.isEmpty()) {
+            throw new RuntimeException("수거 기록이 존재하지 않습니다.");
+        }
+
         // ✅ 2. CSV 생성
         String filename = "report_" + LocalDate.now() + ".csv";
         String csvPath = csvGenerator.generateCsv(records, filename);
 
-        // ✅ 3. Python 실행 (CSV → PDF 변환)
-        String pdfPath = runPythonScript(csvPath);
+        // ✅ 3. storeName은 첫 번째 기록 기준
+        String storeName = records.get(0).getStoreName();
 
-        // ✅ 4. 생성된 PDF 파일 경로 반환
+        // ✅ 4. Python 실행 (CSV + storeName + 날짜범위)
+        String pdfPath = runPythonScript(
+                csvPath,
+                storeName,
+                start.toString(),
+                end.toString()
+        );
+
+        // ✅ 5. 생성된 PDF 경로 반환
         return pdfPath;
     }
 
-    private String runPythonScript(String csvPath) {
+    private String runPythonScript(String csvPath, String storeName, String startDate, String endDate) {
         try {
-            ProcessBuilder builder = new ProcessBuilder("python3", "report_generator.py", csvPath);
+            ProcessBuilder builder = new ProcessBuilder(
+                    "python3", "report_generator.py", csvPath, storeName, startDate, endDate
+            );
             builder.redirectErrorStream(true);
             Process process = builder.start();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String outputPath = reader.readLine();  // PDF 경로
+            String outputPath = reader.readLine();  // PDF 경로 반환됨
 
             int exitCode = process.waitFor();
             if (exitCode != 0 || outputPath == null || outputPath.isEmpty()) {

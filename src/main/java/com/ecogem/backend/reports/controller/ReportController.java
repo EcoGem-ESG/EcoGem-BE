@@ -48,7 +48,7 @@ public class ReportController {
     }
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadReport(@RequestParam String filename) throws IOException {
-        File file = new File("src/main/resources/reports/" + filename);  // 경로는 네가 저장한 위치에 따라 조절
+        File file = new File("/tmp/" + filename);  // ✅ 실제 생성 위치에 맞게 수정
 
         if (!file.exists()) {
             return ResponseEntity.notFound().build();
@@ -62,4 +62,6 @@ public class ReportController {
                 .contentLength(file.length())
                 .body(resource);
     }
+
+
 }
