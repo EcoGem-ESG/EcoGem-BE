@@ -1,6 +1,5 @@
 package com.ecogem.backend.post.repository;
 
-
 import com.ecogem.backend.post.entity.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +9,9 @@ import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    // 반경 필터링
+    /**
+     * Radius filtering: find posts within the specified radius (in kilometers)
+     */
     @Query(value =
             "SELECT " +
                     "  p.id          AS postId, " +
@@ -37,7 +38,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("radius") int    radiusKm
     );
 
-    // 전체 게시글 최신 작성순 조회
+    /**
+     * Retrieve all posts ordered by creation timestamp descending
+     */
     @Query(value =
             "SELECT " +
                     "  p.id          AS postId, " +
@@ -51,8 +54,4 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             nativeQuery = true)
     List<PostProjection> findAllOrdered();
 
-
-
-
 }
-

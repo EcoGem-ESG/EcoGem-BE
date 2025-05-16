@@ -17,44 +17,43 @@ public class CommentService {
     private final PostRepository    postRepo;
 
     /**
-     * 댓글/대댓글 작성
+     * Create a new comment or reply
      */
     @Transactional
     public CommentCreateResponseDto createComment(
             CommentCreateRequestDto req,
             Long userId
     ) {
-        // 1) Post 조회
+        // 1) Retrieve the post
         Post post = postRepo.findById(req.getPostId())
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + req.getPostId()));
 
-        // 2) parent 댓글 조회 (대댓글일 때만)
+        // 2) Retrieve parent comment (for replies only)
         Comment parent = null;
         if (req.getParentId() != null) {
             parent = commentRepo.findById(req.getParentId())
                     .orElseThrow(() -> new IllegalArgumentException("Parent comment not found: " + req.getParentId()));
         }
 
-        // 3) 엔티티 생성
+        // 3) Create comment entity
         Comment comment = Comment.builder()
                 .post(post)
                 .parent(parent)
-                .userId(userId)        // ← req.getUserId() → userId
+                .userId(userId)
                 .content(req.getContent())
                 .build();
 
-        // 4) 저장
+        // 4) Save to repository
         Comment saved = commentRepo.save(comment);
 
-        // 5) 응답
+        // 5) Build response DTO
         return CommentCreateResponseDto.builder()
                 .commentId(saved.getId())
                 .build();
     }
 
-
     /**
-     * 댓글/대댓글 내용 수정
+     * Update content of a comment or reply
      */
     @Transactional
     public CommentUpdateResponseDto updateComment(
@@ -62,41 +61,42 @@ public class CommentService {
             CommentUpdateRequestDto req,
             Long userId
     ) {
-        // 1) Comment 조회
+        // 1) Retrieve the comment
         Comment comment = commentRepo.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found: " + commentId));
 
-        // 2) 작성자 본인만 수정 허용
-        if (!comment.getUserId().equals(userId)) {  // ← req.getUserId() → userId
-            throw new IllegalArgumentException("권한이 없습니다.");
+        // 2) Allow update only by the author
+        if (!comment.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("Access denied.");
         }
 
-        // 3) 내용 업데이트
+        // 3) Update the content
         comment.updateContent(req.getContent());
 
-        // 4) 응답
+        // 4) Build response DTO
         return CommentUpdateResponseDto.builder()
                 .commentId(comment.getId())
                 .build();
     }
 
     /**
-     * 댓글/대댓글 소프트 삭제
+     * Soft-delete a comment or reply
      */
     @Transactional
     public CommentDeleteResponseDto deleteComment(Long commentId, Long userId) {
+        // 1) Retrieve the comment
         Comment comment = commentRepo.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found: " + commentId));
 
-        // 작성자 확인
+        // 2) Verify author
         if (!comment.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("권한이 없습니다.");
+            throw new IllegalArgumentException("Access denied.");
         }
 
-        // 소프트 삭제
+        // 3) Soft delete the comment
         comment.softDelete();
 
-        // 응답
+        // 4) Build response DTO
         return CommentDeleteResponseDto.builder()
                 .success(true)
                 .code(200)

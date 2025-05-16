@@ -44,11 +44,6 @@ public class CollectionRecord {
     @Column(name = "total_price", nullable = false)
     private Integer totalPrice;
 
-
-    /**
-     * 수정용 도메인 메서드.
-     * store, company, id 등은 바꿀 수 없고 나머지만 업데이트
-     */
     public void update(
             LocalDate collectedAt,
             String collectedBy,

@@ -11,8 +11,8 @@ import lombok.*;
         uniqueConstraints = @UniqueConstraint(columnNames = {"company_id", "store_id"})
 )
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)   // JPA용 기본 생성자
-@AllArgsConstructor(access = AccessLevel.PRIVATE)    // Builder용 생성자
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class Contract {
 

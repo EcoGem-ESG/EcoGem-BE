@@ -29,7 +29,7 @@ public class CollectionRecordService {
     private final ContractRepository contractRepo;
 
     /**
-     * 1) 수거기록 조회
+     * 1) Retrieve collection records
      */
     @Transactional(readOnly = true)
     public List<CollectionRecordResponseDto> getRecordsForUser(
@@ -42,9 +42,9 @@ public class CollectionRecordService {
 
         List<CollectionRecord> records = switch (role) {
             case STORE_OWNER -> {
-                // ① userId로 Store 조회
+                // Fetch Store by userId
                 Store store = storeRepo.findByUserId(userId)
-                        .orElseThrow(() -> new IllegalArgumentException("No store for user_id=" + userId));
+                        .orElseThrow(() -> new IllegalArgumentException("No store found for user_id=" + userId));
                 Long storeId = store.getId();
                 yield hasRange
                         ? recordRepo.findByStore_IdAndCollectedAtBetweenOrderByCollectedAtDesc(storeId, start, end)
@@ -52,28 +52,28 @@ public class CollectionRecordService {
             }
 
             case COMPANY_WORKER -> {
-                // ① userId로 Company 조회
+                // Fetch Company by userId
                 Company company = companyRepo.findByUserId(userId)
-                        .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
+                        .orElseThrow(() -> new IllegalArgumentException("No company found for user_id=" + userId));
                 Long companyId = company.getId();
                 yield hasRange
                         ? recordRepo.findByCompany_IdAndCollectedAtBetweenOrderByCollectedAtDesc(companyId, start, end)
                         : recordRepo.findByCompany_IdOrderByCollectedAtDesc(companyId);
             }
 
-            default -> throw new IllegalArgumentException("Unknown role: " + role);
+            default -> throw new IllegalArgumentException("Unsupported role: " + role);
         };
 
         return records.stream()
                 .map(r -> {
-                    String nameToShow = (role == Role.COMPANY_WORKER)
+                    String displayName = (role == Role.COMPANY_WORKER)
                             ? r.getStore().getName()
                             : r.getCompany().getName();
                     return CollectionRecordResponseDto.builder()
                             .recordId(r.getId())
                             .collectedAt(r.getCollectedAt())
                             .collectedBy(r.getCollectedBy())
-                            .storeName(nameToShow)
+                            .storeName(displayName)
                             .volumeLiter(r.getVolumeLiter())
                             .pricePerLiter(r.getPricePerLiter())
                             .totalPrice(r.getTotalPrice())
@@ -83,7 +83,7 @@ public class CollectionRecordService {
     }
 
     /**
-     * 2) 수거기록 등록
+     * 2) Register a new collection record (COMPANY_WORKER only)
      */
     @Transactional
     public void registerRecord(
@@ -96,7 +96,7 @@ public class CollectionRecordService {
         }
 
         Company company = companyRepo.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
+                .orElseThrow(() -> new IllegalArgumentException("No company found for user_id=" + userId));
 
         Store store = storeRepo.findByName(dto.getStoreName())
                 .orElseGet(() -> storeRepo.save(
@@ -105,10 +105,10 @@ public class CollectionRecordService {
                                 .build()
                 ));
 
-        boolean existsContract = contractRepo
+        boolean contractExists = contractRepo
                 .existsByCompanyIdAndStoreId(company.getId(), store.getId());
 
-        if (!existsContract) {
+        if (!contractExists) {
             Contract contract = Contract.builder()
                     .company(company)
                     .store(store)
@@ -130,7 +130,7 @@ public class CollectionRecordService {
     }
 
     /**
-     * 3) 수거기록 수정
+     * 3) Update an existing collection record (COMPANY_WORKER only)
      */
     @Transactional
     public void updateRecord(
@@ -144,13 +144,13 @@ public class CollectionRecordService {
         }
 
         CollectionRecord record = recordRepo.findById(recordId)
-                .orElseThrow(() -> new IllegalArgumentException("No record with id=" + recordId));
+                .orElseThrow(() -> new IllegalArgumentException("No record found with id=" + recordId));
 
         Company company = companyRepo.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
+                .orElseThrow(() -> new IllegalArgumentException("No company found for user_id=" + userId));
 
         if (!record.getCompany().getId().equals(company.getId())) {
-            throw new IllegalArgumentException("Company worker can only update their own records");
+            throw new IllegalArgumentException("Cannot update records from another company");
         }
 
         record.update(
@@ -163,7 +163,7 @@ public class CollectionRecordService {
     }
 
     /**
-     * 4) 수거기록 삭제
+     * 4) Delete a collection record and remove contract if no more records exist
      */
     @Transactional
     public void deleteRecord(Long userId, Role role, Long recordId) {
@@ -172,13 +172,13 @@ public class CollectionRecordService {
         }
 
         CollectionRecord record = recordRepo.findById(recordId)
-                .orElseThrow(() -> new IllegalArgumentException("No record with id=" + recordId));
+                .orElseThrow(() -> new IllegalArgumentException("No record found with id=" + recordId));
 
         Company company = companyRepo.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
+                .orElseThrow(() -> new IllegalArgumentException("No company found for user_id=" + userId));
 
         if (!record.getCompany().getId().equals(company.getId())) {
-            throw new IllegalArgumentException("Cannot delete others' records");
+            throw new IllegalArgumentException("Cannot delete records from another company");
         }
 
         Long companyId = company.getId();
@@ -186,8 +186,8 @@ public class CollectionRecordService {
 
         recordRepo.delete(record);
 
-        boolean exists = recordRepo.existsByCompany_IdAndStore_Id(companyId, storeId);
-        if (!exists) {
+        boolean stillExists = recordRepo.existsByCompany_IdAndStore_Id(companyId, storeId);
+        if (!stillExists) {
             contractRepo.deleteByCompanyIdAndStoreId(companyId, storeId);
         }
     }

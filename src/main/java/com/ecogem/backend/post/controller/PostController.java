@@ -17,12 +17,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
-@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })   // Live Server 주소
+@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })   // Allowed live server origins
 public class PostController {
 
     private final PostService postService;
 
-    /** 게시판에서 게시글 목록 조회 */
+    /**
+     * Retrieve list of posts for the board
+     */
     @GetMapping
     public ResponseEntity<?> getPosts(
             @AuthenticationPrincipal CustomUserDetails principal,
@@ -33,17 +35,17 @@ public class PostController {
 
         List<PostResponseDto> data;
         if ("COMPANY_WORKER".equals(role)) {
-            // 회사: radiusKm 있으면 필터, 없으면 전체
+            // Company worker: filter by radius if provided
             data = postService.listPostsByCompany(userId, radiusKm);
         } else if ("STORE_OWNER".equals(role)) {
-            // 가게 주인: 반경 무시, 전체 최신순
+            // Store owner: list all posts regardless of radius
             data = postService.listAllPosts();
         } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of(
                             "success", false,
                             "code",    403,
-                            "message", "권한이 없습니다."
+                            "message", "Access denied."
                     ));
         }
 
@@ -55,17 +57,23 @@ public class PostController {
         ));
     }
 
-    /** 게시글 상세 조회 */
+    /**
+     * Retrieve post details by ID
+     */
     @GetMapping("/{postId}")
     public ResponseEntity<?> getPostDetail(@PathVariable Long postId) {
         var data = postService.getPostDetail(postId);
         return ResponseEntity.ok(Map.of(
-                "success", true, "code", 200,
-                "message", "POST_DETAIL_SUCCESS", "data", data
+                "success", true,
+                "code",    200,
+                "message", "POST_DETAIL_SUCCESS",
+                "data",    data
         ));
     }
 
-    /** 게시글 작성 */
+    /**
+     * Create a new post
+     */
     @PostMapping
     public ResponseEntity<?> createPost(
             @AuthenticationPrincipal CustomUserDetails principal,
@@ -74,12 +82,16 @@ public class PostController {
         var data = postService.createPost(req);
         URI location = URI.create("/api/posts/" + data.getPostId());
         return ResponseEntity.created(location).body(Map.of(
-                "success", true, "code", 201,
-                "message", "POST_CREATE_SUCCESS", "data", data
+                "success", true,
+                "code",    201,
+                "message", "POST_CREATE_SUCCESS",
+                "data",    data
         ));
     }
 
-    /** 게시글 상태 변경 */
+    /**
+     * Update the status of an existing post
+     */
     @PatchMapping("/{postId}/status")
     public ResponseEntity<?> changeStatus(
             @AuthenticationPrincipal CustomUserDetails principal,
@@ -88,12 +100,16 @@ public class PostController {
     ) {
         var data = postService.updateStatus(postId, req);
         return ResponseEntity.ok(Map.of(
-                "success", true, "code", 200,
-                "message", "POST_STATUS_UPDATED", "data", data
+                "success", true,
+                "code",    200,
+                "message", "POST_STATUS_UPDATED",
+                "data",    data
         ));
     }
 
-    /** 게시글 수정 */
+    /**
+     * Update an existing post's content
+     */
     @PatchMapping("/{postId}")
     public ResponseEntity<?> updatePost(
             @AuthenticationPrincipal CustomUserDetails principal,
@@ -102,12 +118,16 @@ public class PostController {
     ) {
         var data = postService.updatePost(postId, req);
         return ResponseEntity.ok(Map.of(
-                "success", true, "code", 200,
-                "message", "POST_UPDATE_SUCCESS", "data", data
+                "success", true,
+                "code",    200,
+                "message", "POST_UPDATE_SUCCESS",
+                "data",    data
         ));
     }
 
-    /** 게시글 삭제 */
+    /**
+     * Delete a post by ID
+     */
     @DeleteMapping("/{postId}")
     public ResponseEntity<?> deletePost(
             @AuthenticationPrincipal CustomUserDetails principal,
@@ -115,8 +135,10 @@ public class PostController {
     ) {
         var data = postService.deletePost(postId);
         return ResponseEntity.ok(Map.of(
-                "success", true, "code", 200,
-                "message", "POST_DELETE_SUCCESS", "data", data
+                "success", true,
+                "code",    200,
+                "message", "POST_DELETE_SUCCESS",
+                "data",    data
         ));
     }
 }

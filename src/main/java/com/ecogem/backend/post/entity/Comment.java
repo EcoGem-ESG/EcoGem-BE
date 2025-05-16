@@ -25,7 +25,6 @@ public class Comment {
     @JoinColumn(name = "post_id", nullable = false, updatable = false)
     private Post post;
 
-    /** 작성자 유저 ID (User 엔티티 미구현 상태이므로 Long으로 처리) */
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
@@ -33,7 +32,7 @@ public class Comment {
     @JoinColumn(name = "parent_id")
     private Comment parent;
 
-    /** 부모댓글 → 자식(대댓글) 목록 */
+    /** List of child comments (replies) for this parent comment */
     @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<Comment> children = new ArrayList<>();
@@ -41,7 +40,6 @@ public class Comment {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    /** 소프트 삭제 플래그 */
     @Builder.Default
     @Column(nullable = false)
     private boolean deleted = false;
@@ -54,12 +52,10 @@ public class Comment {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    /** 내용 수정용 */
     public void updateContent(String content) {
         this.content = content;
     }
 
-    /** 소프트 삭제 로직 */
     public void softDelete() {
         this.deleted = true;
         this.content = "[Deleted comment]";

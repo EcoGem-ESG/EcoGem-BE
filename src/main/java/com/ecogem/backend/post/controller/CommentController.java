@@ -14,13 +14,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor
-@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })   // Live Server 주소
+@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })   // Live Server URLs
 public class CommentController {
 
     private final CommentService commentService;
 
     /**
-     * 댓글/대댓글 작성
+     * Create a new comment or reply
      */
     @PostMapping
     public ResponseEntity<?> createComment(
@@ -38,7 +38,7 @@ public class CommentController {
     }
 
     /**
-     * 댓글/대댓글 내용 수정
+     * Update an existing comment or reply
      */
     @PatchMapping("/{commentId}")
     public ResponseEntity<?> updateComment(
@@ -57,7 +57,7 @@ public class CommentController {
     }
 
     /**
-     * 댓글/대댓글 소프트 삭제
+     * Soft-delete a comment or reply
      */
     @DeleteMapping("/{commentId}")
     public ResponseEntity<?> deleteComment(

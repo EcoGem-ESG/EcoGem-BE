@@ -18,7 +18,6 @@ public class StoreService {
     private final UserRepository userRepository;
 
     public StoreResponseDto registerStore(Long userId, StoreRequestDto dto) {
-        // 1. Store 등록
         Store store = Store.builder()
                 .name(dto.getName())
                 .address(dto.getAddress())
@@ -28,14 +27,13 @@ public class StoreService {
                 .build();
         storeRepository.save(store);
 
-        // 2. 유저 상태 변경 및 연동
+        // Update user status and associate with store
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         user.setStatus(Status.COMPLETE);
         user.setStore(store);
         userRepository.save(user);
 
-        // 3) 응답 DTO 반환
         return new StoreResponseDto(
                 true,
                 200,
