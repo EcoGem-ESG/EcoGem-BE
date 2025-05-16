@@ -16,7 +16,6 @@ public class CommentDetailResponseDto {
     @JsonProperty("comment_id")
     private Long commentId;
 
-    // TODO: user_name 구현되면 바꾸기
     @JsonProperty("user_id")
     private Long userId;
 
@@ -32,11 +31,11 @@ public class CommentDetailResponseDto {
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
-    /** 소프트 삭제 여부 */
+    /** Flag indicating if this comment has been soft-deleted */
     @JsonProperty("deleted")
     private boolean deleted;
 
-    /** 대댓글(자식) 리스트 */
+    /** List of nested replies (children) */
     @JsonProperty("children")
     @Builder.Default
     private List<CommentDetailResponseDto> children = new ArrayList<>();

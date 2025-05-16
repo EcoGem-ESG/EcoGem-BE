@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
-@NoArgsConstructor  // Jackson이 바인딩할 기본 생성자
+@NoArgsConstructor
 public class CollectionRecordRequestDto {
 
     @JsonProperty("collected_at")

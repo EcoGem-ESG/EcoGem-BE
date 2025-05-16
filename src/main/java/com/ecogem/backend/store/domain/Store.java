@@ -29,7 +29,6 @@ public class Store {
         SMALL, MEDIUM, LARGE, IRREGULAR
     }
 
-    // ← 이 메서드를 추가하세요
     public void updateProfile(String address,
                               String storePhone,
                               String ownerPhone,

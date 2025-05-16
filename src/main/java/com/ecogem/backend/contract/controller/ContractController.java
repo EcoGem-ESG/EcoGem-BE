@@ -18,13 +18,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/contracts/stores")
 @RequiredArgsConstructor
-@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })   // Live Server 주소
+@CrossOrigin(origins = { "http://127.0.0.1:5500", "http://localhost:5500" })   // Live Server URLs
 public class ContractController {
 
     private final ContractService service;
 
     /**
-     * 계약한 가게리스트에서 목록 조회 및 가게 검색
+     * Retrieve the list of contracted stores
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getContractedStores(
@@ -32,7 +32,7 @@ public class ContractController {
             @RequestParam(value = "search", required = false) String search
     ) {
         Long userId = principal.getUser().getId();
-        var role    = principal.getUser().getRole();
+        Role role   = principal.getUser().getRole();
 
         List<ContractedStoreResponseDto> data =
                 service.getContractedStore(userId, role, search);
@@ -46,7 +46,7 @@ public class ContractController {
     }
 
     /**
-     * 계약힌 가게 리스트에 가게 추가
+     * Add a store to the contracted store list
      */
     @PostMapping
     public ResponseEntity<Map<String, Object>> addStore(
@@ -54,7 +54,7 @@ public class ContractController {
             @RequestBody AddContractedStoreRequestDto dto
     ) {
         Long userId = principal.getUser().getId();
-        var role    = principal.getUser().getRole();
+        Role role   = principal.getUser().getRole();
 
         service.addContractedStore(userId, role, dto);
 
@@ -66,7 +66,7 @@ public class ContractController {
     }
 
     /**
-     * 계약한 가게 리스트에서 가게 삭제
+     * Delete a store from the contracted store list
      */
     @DeleteMapping("/{store_id}")
     public ResponseEntity<Map<String,Object>> deleteContractedStore(
@@ -74,7 +74,7 @@ public class ContractController {
             @PathVariable("store_id") Long storeId
     ) {
         Long userId = principal.getUser().getId();
-        var role    = principal.getUser().getRole();
+        Role role   = principal.getUser().getRole();
 
         service.deleteContractedStore(userId, role, storeId);
 

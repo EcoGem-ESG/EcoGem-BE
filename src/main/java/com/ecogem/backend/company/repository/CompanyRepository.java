@@ -9,7 +9,6 @@ import java.util.Optional;
 
 public interface CompanyRepository extends JpaRepository<Company, Long> {
 
-    // ① userId로 Company 조회
     @Query("SELECT u.company FROM User u WHERE u.id = :userId")
     Optional<Company> findByUserId(@Param("userId") Long userId);
 

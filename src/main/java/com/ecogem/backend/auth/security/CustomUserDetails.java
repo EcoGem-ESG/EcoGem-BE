@@ -19,7 +19,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 예: ROLE_COMPANY_WORKER 또는 ROLE_STORE_OWNER
+        // ex: ROLE_COMPANY_WORKER or ROLE_STORE_OWNER
         String roleName = "ROLE_" + user.getRole().name();
         return List.of(new SimpleGrantedAuthority(roleName));
     }

@@ -22,39 +22,36 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // 1) CORS 설정 (필요에 따라 CorsConfigurationSource 빈 정의)
-        http.cors(cors -> {
-            cors.configurationSource(request -> {
-                var cfg = new CorsConfiguration();
-                cfg.addAllowedOriginPattern("*");
-                cfg.addAllowedMethod("*");
-                cfg.addAllowedHeader("*");
-                cfg.setAllowCredentials(true);
-                return cfg;
-            });
-        });
+        // 1) Configure CORS (define CorsConfigurationSource bean if needed)
+        http.cors(cors -> cors.configurationSource(request -> {
+            var cfg = new CorsConfiguration();
+            cfg.addAllowedOriginPattern("*");
+            cfg.addAllowedMethod("*");
+            cfg.addAllowedHeader("*");
+            cfg.setAllowCredentials(true);
+            return cfg;
+        }));
 
-        // 2) CSRF 비활성화
+        // 2) Disable CSRF protection
         http.csrf(csrf -> csrf.disable());
 
-        // 3) 세션을 생성하지 않음 (JWT Stateless)
+        // 3) Do not create sessions (JWT-based stateless authentication)
         http.sessionManagement(sess ->
                 sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         );
 
-        // 4) 엔드포인트 권한 설정
-        http.authorizeHttpRequests(authz ->
-                authz
-                        .requestMatchers("/api/auth/**").permitAll()
-                        // COMPANY_WORKER 만 회사 등록 가능
-                        .requestMatchers(HttpMethod.POST, "/api/companies").hasRole("COMPANY_WORKER")
-                        // STORE_OWNER 만 가게 등록 가능
-                        .requestMatchers(HttpMethod.POST, "/api/stores").hasRole("STORE_OWNER")
-                        // 나머지 API 들은 인증만 있으면 접근
-                        .anyRequest().authenticated()
+        // 4) Configure endpoint access rules
+        http.authorizeHttpRequests(authz -> authz
+                .requestMatchers("/api/auth/**").permitAll()
+                // Only COMPANY_WORKER can register a company
+                .requestMatchers(HttpMethod.POST, "/api/companies").hasRole("COMPANY_WORKER")
+                // Only STORE_OWNER can register a store
+                .requestMatchers(HttpMethod.POST, "/api/stores").hasRole("STORE_OWNER")
+                // Any other request requires authentication
+                .anyRequest().authenticated()
         );
 
-        // 5) JWT 필터 등록
+        // 5) Add JWT filter before UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

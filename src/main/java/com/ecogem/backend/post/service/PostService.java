@@ -27,12 +27,14 @@ public class PostService {
     private final StoreRepository   storeRepo;
     private final CommentRepository commentRepo;
     private final CompanyRepository companyRepo;
-    private final UserRepository userRepo;
+    private final UserRepository    userRepo;
 
-    /** radiusKm 있을 때 회사 위치기준 필터, 없으면 전체 */
+    /**
+     * Filter posts by company location if radiusKm is provided; otherwise return all posts
+     */
     public List<PostResponseDto> listPostsByCompany(Long userId, Integer radiusKm) {
         Company company = companyRepo.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("No company for user_id=" + userId));
+                .orElseThrow(() -> new IllegalArgumentException("No company found for user_id=" + userId));
 
         List<PostProjection> list = (radiusKm != null)
                 ? postRepo.findWithinRadius(company.getLatitude(), company.getLongitude(), radiusKm)
@@ -49,6 +51,9 @@ public class PostService {
         ).toList();
     }
 
+    /**
+     * Retrieve all posts ordered by creation time descending
+     */
     public List<PostResponseDto> listAllPosts() {
         return postRepo.findAllOrdered().stream()
                 .map(p -> PostResponseDto.builder()
@@ -62,14 +67,14 @@ public class PostService {
     }
 
     /**
-     * 게시글 상세 조회
+     * Retrieve detailed post information including nested comments
      */
     @Transactional(readOnly = true)
     public PostDetailResponseDto getPostDetail(Long postId) {
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
 
-        List<CommentDetailResponseDto> flat = commentRepo
+        List<CommentDetailResponseDto> flatComments = commentRepo
                 .findByPostIdOrderByCreatedAtAsc(postId)
                 .stream()
                 .map(c -> CommentDetailResponseDto.builder()
@@ -83,35 +88,35 @@ public class PostService {
                         .build())
                 .toList();
 
-        Map<Long, CommentDetailResponseDto> map = new LinkedHashMap<>();
-        flat.forEach(dto -> map.put(dto.getCommentId(), dto));
+        Map<Long, CommentDetailResponseDto> commentMap = new LinkedHashMap<>();
+        flatComments.forEach(dto -> commentMap.put(dto.getCommentId(), dto));
 
-        List<CommentDetailResponseDto> roots = new ArrayList<>();
-        for (var dto : map.values()) {
+        List<CommentDetailResponseDto> rootComments = new ArrayList<>();
+        for (CommentDetailResponseDto dto : commentMap.values()) {
             if (dto.getParentId() == null) {
-                roots.add(dto);
+                rootComments.add(dto);
             } else {
-                var parent = map.get(dto.getParentId());
+                CommentDetailResponseDto parent = commentMap.get(dto.getParentId());
                 if (parent != null) parent.getChildren().add(dto);
-                else roots.add(dto);
+                else rootComments.add(dto);
             }
         }
-        // ③ store_id → user_id 역방향 조회
+
         Long ownerUserId = userRepo.findByStoreId(post.getStore().getId())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "No User for store_id=" + post.getStore().getId()))
+                        "No user found for store_id=" + post.getStore().getId()))
                 .getId();
 
-        // ④ 최종 DTO 빌드
+        // Build final DTO
         return PostDetailResponseDto.builder()
                 .postId(post.getId())
                 .storeId(post.getStore().getId())
                 .storeName(post.getStore().getName())
-                .userId(ownerUserId)          // ← 여기에 채워 줌
+                .userId(ownerUserId)
                 .content(post.getContent())
                 .status(post.getStatus().name())
                 .createdAt(post.getCreatedAt())
-                .comments(roots)
+                .comments(rootComments)
                 .build();
     }
 
@@ -120,15 +125,14 @@ public class PostService {
                 .map(Company::getName)
                 .orElseGet(() -> storeRepo.findByUserId(userId)
                         .map(Store::getName)
-                        .orElse("알 수 없음"));
+                        .orElse("Unknown"));
     }
 
     /**
-     * 게시글 작성
+     * Create a new post for the authenticated store owner
      */
     @Transactional
     public PostCreateResponseDto createPost(PostCreateRequestDto dto) {
-        // storeId는 로그인된 STORE_OWNER의 정보에서 꺼냄
         Long storeId = ((CustomUserDetails)
                 SecurityContextHolder.getContext().getAuthentication().getPrincipal()
         ).getUser().getStore().getId();
@@ -148,7 +152,7 @@ public class PostService {
     }
 
     /**
-     * 게시글 상태 변경
+     * Update the status of a post (e.g., ACTIVE, RESERVED, COMPLETED)
      */
     @Transactional
     public PostStatusUpdateResponseDto updateStatus(
@@ -163,7 +167,7 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
 
         if (!post.getStore().getId().equals(storeId))
-            throw new IllegalArgumentException("권한이 없습니다.");
+            throw new IllegalArgumentException("Access denied.");
 
         PostStatus newStatus = PostStatus.valueOf(dto.getStatus());
         post.setStatus(newStatus);
@@ -175,7 +179,7 @@ public class PostService {
     }
 
     /**
-     * 게시글 수정
+     * Update the content of an existing post
      */
     @Transactional
     public PostUpdateResponseDto updatePost(Long postId, PostUpdateRequestDto dto) {
@@ -187,7 +191,7 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
 
         if (!post.getStore().getId().equals(storeId))
-            throw new IllegalArgumentException("권한이 없습니다.");
+            throw new IllegalArgumentException("Access denied.");
 
         post.setContent(dto.getContent());
         return PostUpdateResponseDto.builder()
@@ -196,7 +200,7 @@ public class PostService {
     }
 
     /**
-     * 게시글 삭제
+     * Delete a post by the store owner
      */
     @Transactional
     public PostDeleteResponseDto deletePost(Long postId) {
@@ -208,7 +212,7 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
 
         if (!post.getStore().getId().equals(storeId))
-            throw new IllegalArgumentException("권한이 없습니다.");
+            throw new IllegalArgumentException("Access denied.");
 
         postRepo.delete(post);
         return PostDeleteResponseDto.builder()

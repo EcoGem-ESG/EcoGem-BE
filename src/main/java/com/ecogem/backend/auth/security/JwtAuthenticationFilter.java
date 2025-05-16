@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwtProvider.validateToken(token)) {
                 Long userId = jwtProvider.getUserIdFromToken(token);
 
-                // loadUserByUsername 을 userId 기반으로 동작하도록 구현했다면 그대로 사용
+                // Use the userId-based loadUserByUsername implementation
                 CustomUserDetails userDetails =
                         (CustomUserDetails) userDetailsService.loadUserByUsername(String.valueOf(userId));
 
@@ -40,7 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
-                                userDetails.getAuthorities()    // 권한을 꼭 넣어줘야 합니다
+                                userDetails.getAuthorities()    // Authorities must be provided
                         );
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)

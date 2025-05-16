@@ -50,7 +50,6 @@ public class ReportService {
 
     private String runPythonScript(String csvPath, String storeName, String startDate, String endDate) {
         try {
-
             ProcessBuilder builder = new ProcessBuilder(
                     "python3", "report_generator.py", csvPath, storeName, startDate, endDate
             );
@@ -66,9 +65,8 @@ public class ReportService {
                 throw new RuntimeException("Python report failed");
             }
 
-
             // stderr
-            BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            BufferedReader err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             String line;
             while ((line = err.readLine()) != null) {
                 log.error("Python STDERR: {}", line);

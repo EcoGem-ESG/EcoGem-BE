@@ -17,7 +17,7 @@ public class CompanyService {
     private final UserRepository userRepository;
 
     public Long registerCompany(Long userId, CompanyRequestDto request) {
-        // 1. 회사 등록
+        // 1. Register the company
         Company company = Company.builder()
                 .name(request.getName())
                 .address(request.getAddress())
@@ -29,9 +29,9 @@ public class CompanyService {
                 .build();
         companyRepository.save(company);
 
-        // 2. 유저 상태 변경
+        // 2. Update user status and associate the company
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         user.setStatus(Status.COMPLETE);
         user.setCompany(company);
         userRepository.save(user);
